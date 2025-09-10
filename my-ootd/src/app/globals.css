@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* Optional: Geist fonts */
+:root {
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
+}
+
+/* Optional: dark mode overrides */
+/* [data-theme="dark"] {
+	--color-primary: #ffffff;
+	--color-dark-gray: #9999a1;
+	--color-light-gray: #66666e;
+	--color-dark-beige: #f4f4f6;
+	--color-beige: #e6e6e9;
+	--color-mint: #ff9e96;
+	--color-pink: #ff99bb;
+} */
+
+/* Apply fonts globally */
+body {
+	font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+	.text-mint {
+		color: var(--color-mint);
+	}
+	.text-pink {
+		color: var(--color-pink);
+	}
+}
