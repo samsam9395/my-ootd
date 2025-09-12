@@ -1,61 +1,71 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { clothesMock } from "./clothes";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
-type ClothItem = {
+export type ClothItem = {
 	id: number;
 	name: string;
 	type: string;
-	img: string;
-	color: string;
-	style: string;
+	colour: string;
+	image_url: string;
+	category: string;
+	styles: string[];
 };
-
-function recommendClothes(selectedClothItem: ClothItem) {
-	if (!selectedClothItem) return [];
-	const filtered = clothesMock.filter(
-		(item) =>
-			item.id !== selectedClothItem.id && item.type !== selectedClothItem.type
-	);
-	const recommendations = filtered.sort((a, b) =>
-		a.color === selectedClothItem.color ? -1 : 0
-	);
-	return recommendations.slice(0, 3);
-}
 
 export default function Wardrobe() {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [selectedCloth, setSelectedCloth] = useState<number | null>(null);
 	const [modalItem, setModalItem] = useState<ClothItem | null>(null);
-	const total = clothesMock.length;
-	const clothes = clothesMock.map((item) => item.img);
+	const [fetchItems, setFetchItems] = useState<any[]>([]);
+	const total = fetchItems.length;
 
 	const selectedItem =
-		selectedCloth !== null ? clothesMock[selectedCloth] : null;
+		selectedCloth !== null ? fetchItems[selectedCloth] : null;
 	const recommendations = selectedItem ? recommendClothes(selectedItem) : [];
+
+	useEffect(() => {
+		async function fetchData() {
+			const res = await fetch(`/api/wardrobe?type=all`);
+			const data = await res.json();
+
+			setFetchItems(data);
+		}
+		fetchData();
+	}, []);
 
 	// Log selection
 	useEffect(() => {
 		if (selectedCloth !== null) {
-			console.log("Selected cloth:", clothes[selectedCloth]);
+			console.log("Selected cloth:", fetchItems[selectedCloth]);
 		}
 	}, [selectedCloth]);
 
 	const prev = () => {
 		setCurrentIndex((prevIndex) =>
-			prevIndex === 0 ? clothes.length - 1 : prevIndex - 1
+			prevIndex === 0 ? fetchItems.length - 1 : prevIndex - 1
 		);
 		setSelectedCloth(null);
 	};
 
 	const next = () => {
 		setCurrentIndex((prevIndex) =>
-			prevIndex === clothes.length - 1 ? 0 : prevIndex + 1
+			prevIndex === fetchItems.length - 1 ? 0 : prevIndex + 1
 		);
 		setSelectedCloth(null);
 	};
+
+	function recommendClothes(selectedClothItem: ClothItem) {
+		if (!selectedClothItem) return [];
+		const filtered = fetchItems.filter(
+			(item) =>
+				item.id !== selectedClothItem.id && item.type !== selectedClothItem.type
+		);
+		const recommendations = filtered.sort((a, b) =>
+			a.colour === selectedClothItem.colour ? -1 : 0
+		);
+		return recommendations.slice(0, 3);
+	}
 
 	return (
 		<div className="w-full flex flex-col items-center justify-center mt-10">
@@ -81,7 +91,7 @@ export default function Wardrobe() {
 					<ChevronRight size={18} />
 				</button>
 				{/* Wardrobe images */}
-				{clothes.map((img, i) => {
+				{fetchItems.map((item, i) => {
 					let diff = i - currentIndex;
 					if (diff < -Math.floor(total / 2)) diff += total;
 					if (diff > Math.floor(total / 2)) diff -= total;
@@ -93,7 +103,7 @@ export default function Wardrobe() {
 					return (
 						<img
 							key={i}
-							src={img}
+							src={item.image_url}
 							alt={`clothing-${i}`}
 							className="absolute top-1/2 left-1/2 w-60 h-72 rounded-xl shadow-lg object-cover transition-transform duration-300 cursor-pointer"
 							style={{
@@ -120,7 +130,7 @@ export default function Wardrobe() {
 								onClick={() => setModalItem(item)}
 							>
 								<img
-									src={item.img}
+									src={item.image_url}
 									alt={item.name}
 									className="w-full h-32 object-cover"
 								/>
@@ -150,14 +160,14 @@ export default function Wardrobe() {
 							<X size={20} className="hover:cursor-pointer" />
 						</button>
 						<img
-							src={modalItem.img}
+							src={modalItem.image_url}
 							alt={modalItem.name}
 							className="w-full max-h object-cover rounded-lg mb-3"
 						/>
 						<h3 className="font-bold text-lg">{modalItem.name}</h3>
 						<p className="text-gray-500">{modalItem.type}</p>
 						<p className="text-gray-400 text-sm">
-							{modalItem.color}, {modalItem.style}
+							{modalItem.colour}, {modalItem.styles}
 						</p>
 					</div>
 				</div>
