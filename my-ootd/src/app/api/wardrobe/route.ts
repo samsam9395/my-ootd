@@ -6,6 +6,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const selectedCategory = searchParams.get("type") || "all";
 
+    const limit = parseInt(searchParams.get("limit") || "3");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     let query = supabase
         .from("clothes")
@@ -22,10 +24,7 @@ export async function GET(req: Request) {
         name
       )
     )
-  `);
-
-    let testQuery = supabase.from("clothes").select("*");
-
+  `).range(offset, offset + limit - 1); // pagination;
 
     // Only filter if category is not "all"
     if (selectedCategory.toLowerCase() !== "all") {
@@ -34,7 +33,7 @@ export async function GET(req: Request) {
 
     // Now await the query
     const { data, error } = await query;
-    const { data: testData, error: testError } = await testQuery;
+
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });

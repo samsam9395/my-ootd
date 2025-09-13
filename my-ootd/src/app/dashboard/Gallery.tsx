@@ -1,85 +1,166 @@
 "use client";
-
-import { useState, useEffect, useRef, useMemo } from "react";
-import { ClothItem } from "./Wardrobe";
+import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
+import ClothViewer from "./ClothView";
+import { ClothItem } from "./Wardrobe";
 
-type GalleryProps = {
-	selectedCategory: string;
-};
+type GalleryProps = { selectedCategory: string };
 
 export default function Gallery({ selectedCategory }: GalleryProps) {
-	const containerRef = useRef<HTMLDivElement>(null);
+	const loaderRef = useRef<HTMLDivElement>(null);
+
 	const [fetchItems, setFetchItems] = useState<any[]>([]);
+	const [page, setPage] = useState(0);
 	const [isLoading, setIsLoading] = useState(false);
+	const [hasMore, setHasMore] = useState(true);
+	const currentCategoryRef = useRef(selectedCategory);
+	const [selectedClothIndex, setSelectedClothIndex] = useState<number | null>(
+		null
+	);
+	const [recommendations, setRecommendations] = useState<ClothItem[]>([]);
 
 	useEffect(() => {
-		console.log("selectedCategory would be:", selectedCategory);
-		async function fetchData() {
+		let cancelled = false;
+
+		const fetchInitialData = async () => {
 			setIsLoading(true);
-			const res = await fetch(`/api/wardrobe?type=${selectedCategory}`);
+			setFetchItems([]); // reset UI
+			setPage(0);
+			setHasMore(true);
+
+			const limit = 3;
+			const offset = 0;
+
+			const res = await fetch(
+				`/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
+			);
 			const data = await res.json();
-			console.log("Fetched data:", data);
-			setFetchItems(data);
-			setIsLoading(false);
-		}
-		fetchData();
+
+			if (!cancelled) {
+				setFetchItems(data);
+				setHasMore(data.length > 0);
+				setIsLoading(false);
+			}
+		};
+
+		fetchInitialData();
+
+		return () => {
+			cancelled = true;
+		};
 	}, [selectedCategory]);
 
-	function handleClick(item: ClothItem) {
-		console.log("Clicked item:", item);
+	useEffect(() => {
+		if (page === 0 || !hasMore) return; // skip initial page fetch; handled above
+
+		const fetchMoreData = async () => {
+			setIsLoading(true);
+			const limit = 3;
+			const offset = page * limit;
+
+			const res = await fetch(
+				`/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
+			);
+			const data = await res.json();
+
+			if (data.length === 0) {
+				setHasMore(false);
+			} else {
+				setFetchItems((prev) => [...prev, ...data]);
+			}
+
+			setIsLoading(false);
+		};
+
+		fetchMoreData();
+	}, [page, selectedCategory, hasMore]);
+
+	useEffect(() => {
+		let timeout: NodeJS.Timeout | null = null;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && !isLoading && hasMore) {
+					if (!timeout) {
+						timeout = setTimeout(() => {
+							setPage((prev) => prev + 1);
+							timeout = null;
+						}, 200); //debounce prevent multiple calls
+					}
+				}
+			},
+			{ threshold: 0.5 } //lower means trigger observer earlier
+		);
+
+		if (loaderRef.current) observer.observe(loaderRef.current);
+		return () => {
+			observer.disconnect();
+			if (timeout) clearTimeout(timeout);
+		};
+	}, [isLoading, hasMore]);
+
+	function handleClick(itemIndex: number) {
+		setSelectedClothIndex(itemIndex);
 	}
+
+	useEffect(() => {
+		if (selectedClothIndex === null) {
+			setRecommendations([]);
+			return;
+		}
+
+		const clickedItem = fetchItems[selectedClothIndex];
+		console.log("clickedItem", clickedItem);
+		if (!clickedItem) return; // extra guard
+
+		const recs = fetchItems.filter(
+			(i) =>
+				i.id !== clickedItem.id &&
+				i.type !== clickedItem.type &&
+				i.styles.some((s: string) => clickedItem.styles.includes(s)) &&
+				(i.colour === clickedItem.colour ||
+					i.colour === "black" ||
+					i.colour === "white")
+		);
+		console.log("Recommendations:", recs);
+
+		setRecommendations(recs);
+	}, [selectedClothIndex, fetchItems]);
 
 	return (
 		<>
-			{isLoading ? (
-				<Loader />
-			) : (
-				<div
-					ref={containerRef}
-					className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-				>
-					{fetchItems?.map((item, i) => (
-						<div
-							key={item.id}
-							className="bg-white rounded-lg shadow-md cursor-pointer"
-							onClick={() => handleClick(item)}
-						>
-							<img
-								key={i}
-								src={item.image_url}
-								alt={item.name}
-								className="w-full h-64 sm:h-72 md:h-80 lg:h-96 object-cover rounded-t-lg"
-							/>
-							<div className="p-2">
-								<p className="text-sm font-medium">{item.name}</p>
-							</div>
-						</div>
-					))}
-
-					{/* {selectedCloth && (
-				<div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-					<div className="bg-white rounded-lg max-h-full overflow-auto w-full max-w-md p-4 relative">
-						<button
-							className="absolute top-2 right-2 text-black font-bold"
-							onClick={() => setSelectedCloth(null)}
-						>
-							X
-						</button>
+			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+				{fetchItems.map((item, index) => (
+					<div
+						key={index}
+						onClick={() => {
+							console.log("Clicked item index:", index);
+							console.log("Clicked item:", item);
+							handleClick(index);
+						}}
+						className="bg-white rounded-lg shadow-md cursor-pointer"
+					>
 						<img
-							src={selectedCloth.img}
-							alt={selectedCloth.name}
-							className="w-full h-auto max-h-[70vh] object-cover rounded-lg mb-3"
+							src={item.image_url}
+							alt={item.name}
+							className="w-full h-64 sm:h-72 md:h-80 lg:h-96 object-cover rounded-t-lg"
 						/>
-						<p className="font-semibold text-lg mb-2">{selectedCloth.name}</p>
-						<p className="text-sm text-gray-600">
-							Category: {selectedCloth.type}
-						</p>
+						<div className="p-2">
+							<p className="text-sm font-medium">{item.name}</p>
+						</div>
 					</div>
-				</div>
-			)} */}
-				</div>
+				))}
+			</div>
+			{selectedClothIndex !== null && fetchItems[selectedClothIndex] && (
+				<ClothViewer
+					item={fetchItems[selectedClothIndex]}
+					isOpen={true}
+					recommendations={recommendations}
+					onClose={() => setSelectedClothIndex(null)}
+				/>
 			)}
+			{isLoading && <Loader />}
+			<div ref={loaderRef} />
 		</>
 	);
 }
