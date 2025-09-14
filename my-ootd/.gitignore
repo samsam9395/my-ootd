@@ -42,3 +42,4 @@ next-env.d.ts
 
 #mock data
 /src/app/dashboard/clothes/
+!src/app/dashboard/clothes.js

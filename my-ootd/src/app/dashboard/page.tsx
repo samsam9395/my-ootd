@@ -30,6 +30,22 @@ export default function DashboardPage() {
 					<li>
 						<button
 							className="hover:underline"
+							onClick={() => setSelectedCategory("dress")}
+						>
+							Dress
+						</button>
+					</li>
+					<li>
+						<button
+							className="hover:underline"
+							onClick={() => setSelectedCategory("outerwear")}
+						>
+							Outerwear
+						</button>
+					</li>
+					<li>
+						<button
+							className="hover:underline"
 							onClick={() => setSelectedCategory("bottom")}
 						>
 							Bottoms
