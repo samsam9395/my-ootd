@@ -1,20 +1,24 @@
 "use client";
 
+import Loader from "@/components/common/loader";
 import { ClothItem } from "./Wardrobe";
 import { AnimatePresence, motion } from "framer-motion";
+import { ClothRecommendationSet } from "./Gallery";
 
 type ClothViewProps = {
 	isOpen: boolean;
 	item: ClothItem | null;
+	isLoadingRecs: boolean;
+	recommendations: ClothRecommendationSet | null;
 	onClose: () => void;
-	recommendations: ClothItem[];
 };
 
 export default function ClothView({
 	isOpen,
 	item,
-	onClose,
+	isLoadingRecs,
 	recommendations,
+	onClose,
 }: ClothViewProps) {
 	if (!item) return null;
 	console.log("recommendations", recommendations);
@@ -36,7 +40,7 @@ export default function ClothView({
 					>
 						<button
 							onClick={onClose}
-							className="absolute top-2 right-2 text-black font-bold z-10"
+							className="absolute top-2 right-2 text-black font-bold z-10 cursor-pointer"
 						>
 							✕
 						</button>
@@ -51,15 +55,52 @@ export default function ClothView({
 						</div>
 
 						{/* Recommendations */}
-						<div className="flex-1 flex flex-row md:flex-col md:overflow-y-auto gap-2 mt-4 md:mt-0">
-							{recommendations.map((rec) => (
-								<img
-									key={rec.id}
-									src={rec.image_url}
-									alt={rec.name}
-									className="w-24 h-24 md:w-full md:h-auto object-cover rounded-lg cursor-pointer"
-								/>
-							))}
+						<div className="flex-1 flex flex-col gap-4 w-full max-w-3xl mx-auto md:overflow-y-auto mt-4 md:mt-0">
+							{isLoadingRecs ? (
+								<div className="flex w-full flex-col items-center mt-6">
+									<div className="text-gray-700 italic text-md mb-2">
+										Curating your chic look…...
+										<br />
+										This takes a moment!
+									</div>
+									<Loader />
+								</div>
+							) : recommendations ? (
+								<div className="flex flex-col gap-4 mt-6">
+									{/* Single recommendation set */}
+									<div className="border border-gray-200 rounded-lg p-2 flex flex-col gap-2">
+										{recommendations._style_phrase && (
+											<div className="text-gray-700 italic text-md  mb-2 ">
+												Recommend theme: {recommendations._style_phrase}
+											</div>
+										)}
+
+										{/* Each clothing item */}
+										{recommendations.items
+											.filter(({ item }) => item && item.id) // safety filter
+											.map(({ category, item }) => (
+												<div
+													key={item.id}
+													className="flex flex-row items-center gap-2"
+												>
+													<img
+														src={item.image_url}
+														alt={item.name}
+														className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg"
+													/>
+													<div className="flex flex-col text-sm">
+														<span className="font-semibold">{item.name}</span>
+														<span className="text-gray-500">{category}</span>
+													</div>
+												</div>
+											))}
+									</div>
+								</div>
+							) : (
+								<div className="text-gray-500 text-sm p-2">
+									No recommendations
+								</div>
+							)}
 						</div>
 					</motion.div>
 				</motion.div>

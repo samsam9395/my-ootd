@@ -5,6 +5,10 @@ import ClothViewer from "./ClothView";
 import { ClothItem } from "./Wardrobe";
 
 type GalleryProps = { selectedCategory: string };
+export type ClothRecommendationSet = {
+	_style_phrase: string;
+	items: { category: string; item: ClothItem }[];
+};
 
 export default function Gallery({ selectedCategory }: GalleryProps) {
 	const loaderRef = useRef<HTMLDivElement>(null);
@@ -13,12 +17,13 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 	const [page, setPage] = useState(0);
 	const [isLoading, setIsLoading] = useState(false);
 	const [hasMore, setHasMore] = useState(true);
-	const currentCategoryRef = useRef(selectedCategory);
+
 	const [selectedClothIndex, setSelectedClothIndex] = useState<number | null>(
 		null
 	);
-	const [recommendations, setRecommendations] = useState<ClothItem[]>([]);
-
+	const [recommendations, setRecommendations] =
+		useState<ClothRecommendationSet | null>(null);
+	const [isLoadingRecs, setLoadingRecs] = useState(false);
 	useEffect(() => {
 		let cancelled = false;
 
@@ -103,9 +108,48 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 		setSelectedClothIndex(itemIndex);
 	}
 
+	async function fetchRecommendations(itemId: number) {
+		const res = await fetch("http://127.0.0.1:5000/recommend_ai", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ item_id: itemId }),
+		});
+		if (!res.ok) {
+			console.error("Failed to fetch recommendations");
+			return [];
+		}
+		const data = await res.json();
+		return data;
+	}
+	const handleSelectItem = async (itemId: number) => {
+		try {
+			setLoadingRecs(true); // start loader
+			const recsData = await fetchRecommendations(itemId);
+			const recs = recsData["recommendations"];
+			console.log("Fetched recommendations:", recs);
+			const normalizedRecs = {
+				_style_phrase: recs._style_phrase,
+				items: Object.entries(recs)
+					.filter(([key]) => key !== "_style_phrase")
+					.map(([category, item]) => ({
+						category,
+						item: item as ClothItem,
+					}))
+					.filter(({ item }) => item && item.id),
+			};
+			console.log("normalizedRecs", normalizedRecs);
+			setRecommendations(normalizedRecs);
+		} catch (error) {
+			console.error("Error fetching recommendations:", error);
+			setRecommendations(null); // fallback if error
+		} finally {
+			setLoadingRecs(false); // stop loader
+		}
+	};
+
 	useEffect(() => {
 		if (selectedClothIndex === null) {
-			setRecommendations([]);
+			setRecommendations(null);
 			return;
 		}
 
@@ -113,18 +157,7 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 		console.log("clickedItem", clickedItem);
 		if (!clickedItem) return; // extra guard
 
-		const recs = fetchItems.filter(
-			(i) =>
-				i.id !== clickedItem.id &&
-				i.type !== clickedItem.type &&
-				i.styles.some((s: string) => clickedItem.styles.includes(s)) &&
-				(i.colour === clickedItem.colour ||
-					i.colour === "black" ||
-					i.colour === "white")
-		);
-		console.log("Recommendations:", recs);
-
-		setRecommendations(recs);
+		handleSelectItem(clickedItem.id);
 	}, [selectedClothIndex, fetchItems]);
 
 	return (
@@ -155,6 +188,7 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 				<ClothViewer
 					item={fetchItems[selectedClothIndex]}
 					isOpen={true}
+					isLoadingRecs={isLoadingRecs}
 					recommendations={recommendations}
 					onClose={() => setSelectedClothIndex(null)}
 				/>
