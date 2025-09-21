@@ -4,8 +4,10 @@ from .recommendation import (
     get_all_items,
     recommend_clothes,   # cosine similarity flow
     recommend_outfit,    # OpenRouter AI flow
+    fetch_style_tags,
+    create_style_tags
 )
-from huggingface_hub import InferenceApi
+
 import os
 
 bp = Blueprint("routes", __name__)
@@ -16,10 +18,7 @@ def recommend_cosine():
     selected_item_id = data.get("item_id")
     
     # Fetch all clothes using current app configs
-    all_items = get_all_items(
-        supabase_url=current_app.config["SUPABASE_URL"],
-        supabase_key=current_app.config["SUPABASE_KEY"]
-    )
+    all_items = get_all_items()
     
     selected_item = next((item for item in all_items if item['id'] == selected_item_id), None)
     if not selected_item:
@@ -33,28 +32,31 @@ def recommend_cosine():
     )
     return jsonify(recs)
 
-# Recommend with HF gemma-3
-HF_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-inference = InferenceApi(repo_id="google/gemma-3-270m", token=HF_API_KEY)
+@bp.route("/get_style_tags", methods=["GET"])
+def get_style_tags():
+    tags = fetch_style_tags()
+    return jsonify(tags)
 
-
-
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
+@bp.route("/add_style_tags", methods=["POST"])
+def add_style_tags():
+    data = request.json
+    # Expecting { names: ["casual", "formal", ...] }
+    names: list[str] = data.get("names", [])
+    if not names:
+        return jsonify({"message": "No style names provided"}), 400
+    
+    add_styles_res = create_style_tags(
+        names=names
+    )
+    return jsonify(add_styles_res)
 
 @bp.route("/recommend_ai", methods=["POST"])
 def recommend_ai():
     data = request.json
     selected_item_id = data.get("item_id")
-    print('OPENROUTER_API_KEY:', OPENROUTER_API_KEY)
-    print('HF_API_KEY:', HF_API_KEY)
     try:
         outfit = recommend_outfit(
-            selected_item_id=selected_item_id,
-            supabase_url=current_app.config["SUPABASE_URL"],
-            supabase_key=current_app.config["SUPABASE_KEY"],
-            # inference=OPENROUTER_API_KEY
-            open_router_api_key=OPENROUTER_API_KEY
-        )
+            selected_item_id=selected_item_id)
         return jsonify(outfit)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

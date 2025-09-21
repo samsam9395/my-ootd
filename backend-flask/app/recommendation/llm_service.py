@@ -1,5 +1,9 @@
 import requests
 import json
+import os
+
+
+OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
 
 # ---------- 2. Ask Hugging Face LLM ----------
 # def ask_ai_for_outfit(shortlist, selected_item, inference):
@@ -34,7 +38,7 @@ import json
 
 #     return generated_text
 
-def ask_openrouter_for_outfit(shortlist, selected_item, open_router_api_key):
+def ask_openrouter_for_outfit(shortlist, selected_item):
     style_names = [cs['styles']['name'] for cs in selected_item.get('clothes_styles', [])]
     prompt = f"You are a fashion stylist. Create a complete outfit based on:\n"
     prompt += f"- {selected_item['name']}, color: {selected_item['colour']}, style: {', '.join(style_names)}\n\n"
@@ -61,7 +65,7 @@ def ask_openrouter_for_outfit(shortlist, selected_item, open_router_api_key):
     response = requests.post(
         url="https://openrouter.ai/api/v1/chat/completions",
         headers={
-            "Authorization": f"Bearer {open_router_api_key}",
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
         },
         data=json.dumps({

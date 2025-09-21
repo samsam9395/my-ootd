@@ -13,7 +13,7 @@ def create_app():
     # Configs
     app.config["SUPABASE_URL"] = os.getenv("SUPABASE_URL")
     app.config["SUPABASE_KEY"] = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-    app.config["HF_MODEL_NAME"] = os.getenv("HF_MODEL_NAME", "all-MiniLM-L6-v2")
+    app.config["OPEN_ROUTER_API_KEY"] = os.getenv("OPEN_ROUTER_API_KEY")
 
    # Allow all routes from localhost:3000 (dev only)
     CORS(app, origins=["http://localhost:3000"], supports_credentials=True, methods=["GET","POST","OPTIONS"])
