@@ -2,13 +2,11 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { ClothItem } from "./Wardrobe";
+import { ClothRecommendationSet } from "@/types";
+
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
 type GalleryProps = { selectedCategory: string };
-export type ClothRecommendationSet = {
-	_style_phrase: string;
-	items: { category: string; item: ClothItem }[];
-};
 
 export default function Gallery({ selectedCategory }: GalleryProps) {
 	const loaderRef = useRef<HTMLDivElement>(null);
@@ -109,7 +107,7 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 	}
 
 	async function fetchRecommendations(itemId: number) {
-		const res = await fetch("http://127.0.0.1:5000/recommend_ai", {
+		const res = await fetch(`${backendUrl}/recommend_ai`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ item_id: itemId }),
@@ -124,8 +122,8 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 	const handleSelectItem = async (itemId: number) => {
 		try {
 			setLoadingRecs(true); // start loader
-			const recsData = await fetchRecommendations(itemId);
-			const recs = recsData["recommendations"];
+			const recs = await fetchRecommendations(itemId);
+
 			console.log("Fetched recommendations:", recs);
 			const normalizedRecs = {
 				_style_phrase: recs._style_phrase,

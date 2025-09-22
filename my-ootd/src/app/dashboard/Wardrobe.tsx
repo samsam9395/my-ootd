@@ -2,16 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-
-export type ClothItem = {
-	id: number;
-	name: string;
-	type: string;
-	colour: string;
-	image_url: string;
-	category: string;
-	styles: string[];
-};
+import { ClothItem } from "@/types";
 
 export default function Wardrobe() {
 	const [currentIndex, setCurrentIndex] = useState(0);

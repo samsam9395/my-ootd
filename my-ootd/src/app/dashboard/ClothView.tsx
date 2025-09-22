@@ -1,9 +1,8 @@
 "use client";
 
 import Loader from "@/components/common/loader";
-import { ClothItem } from "./Wardrobe";
+import { ClothItem, ClothRecommendationSet } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
-import { ClothRecommendationSet } from "./Gallery";
 
 type ClothViewProps = {
 	isOpen: boolean;
