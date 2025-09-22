@@ -31,17 +31,76 @@ def get_all_items():
             )
         )
     """).execute()
+    if response.error:
+        raise Exception(f"Failed to fetch items: {response.error}")
     return response.data
 
 # Fetch all style tags
 def fetch_style_tags():
     supabase = get_supabase()
-    response = supabase.table("styles").select("*").execute()
-    return response.data
+    try:
+        response = supabase.table("styles").select("*").execute()
+        return response.data
+    except Exception as e:
+        print("Error fetching style tags:", e)
+        return None
 
 # Add new style tags
 def create_style_tags(names):
     supabase = get_supabase()
-    new_tags = [{"name": name} for name in names]
-    response = supabase.table("styles").insert(new_tags).execute()
-    return response.data
+    new_tags = [{"name": name.strip().lower()} for name in names if name.strip()]
+
+    try:
+        response = supabase.table("styles").upsert(new_tags).execute()
+        return response.data  # this is already your inserted rows
+    except Exception as e:
+        # handle the Supabase error
+        print("Error inserting style tags:", e)
+        return None
+
+# Add cloth item
+def insert_cloth(name,type, category, colour, image_url):
+    supabase = get_supabase()
+    # Normalize here
+    name = name.strip()
+    type_ = type_.strip().lower()
+    category = category.strip().lower()
+    colour = colour.strip().lower()
+    
+    try:
+            # 1. Check if cloth with the same name exists
+        existing = supabase.table("clothes").select("*").eq("name", name).execute()
+        
+        if existing.data and len(existing.data) > 0:
+            # 2. Update existing row
+            cloth_id = existing.data[0]["id"]
+            response = supabase.table("clothes").update({
+                "type": type,
+                "category": category,
+                "colour": colour,
+                "image_url": image_url
+            }).eq("id", cloth_id).execute()
+            return response.data[0]
+        else:
+            # 3. Insert new row
+            response = supabase.table("clothes").insert({
+                "name": name,
+                "type": type,
+                "category": category,
+                "colour": colour,
+                "image_url": image_url
+            }).execute()
+            return response.data[0] if response.data else None
+    except Exception as e:
+        print("Error inserting cloth:", e)
+        return None
+
+# Add cloth style relation table
+def insert_cloth_style_relation(cloth_styles):
+    supabase = get_supabase()
+    try:
+        response = supabase.table("clothes_styles").upsert(cloth_styles).execute()
+        return response.data
+    except Exception as e:
+        print("Error inserting cloth styles:", e)
+        return None
