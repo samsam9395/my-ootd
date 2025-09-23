@@ -41,5 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 #mock data
-/src/app/dashboard/clothes/
-!src/app/dashboard/clothes.js
+/src/app/closet/clothes/
+!src/app/closet/clothes.js

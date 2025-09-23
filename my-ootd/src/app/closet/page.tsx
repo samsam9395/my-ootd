@@ -19,7 +19,7 @@ const categories = [
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
-export default function DashboardPage() {
+export default function ClosetPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 
@@ -30,7 +30,7 @@ export default function DashboardPage() {
 	const [randomItemsArr, setRandomItemsArr] = useState([]);
 
 	function handleCategoryChange(category: string) {
-		router.push(`/dashboard?category=${category}`);
+		router.push(`/closet?category=${category}`);
 	}
 
 	useEffect(() => {

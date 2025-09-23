@@ -36,7 +36,7 @@ export default function RootLayout({
 
 							<ul className="flex gap-4 ">
 								<li>
-									<a href="/dashboard">Dashboard</a>
+									<a href="/closet">Closet</a>
 								</li>
 								<li>
 									<a href="/settings">Logout</a>

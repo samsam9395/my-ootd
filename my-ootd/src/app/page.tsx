@@ -11,7 +11,7 @@ export default function HomePage() {
 
 	const handleLogin = (e: React.FormEvent) => {
 		e.preventDefault();
-		router.push("/dashboard");
+		router.push("/closet");
 	};
 
 	return (
