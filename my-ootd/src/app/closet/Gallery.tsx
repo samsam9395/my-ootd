@@ -2,12 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { ClothItem, ClothRecommendationSet } from "@/types";
-import {
-	fetchMoreData,
-	fetchRecommendations,
-	getPageClothesByType,
-} from "@/utils/api";
+import { ClothRecommendationSet } from "@/types";
+import { fetchMoreData, getPageClothesByType } from "@/utils/api";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
@@ -99,47 +95,13 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 		};
 	}, [isLoading, hasMore]);
 
-	function handleClick(itemIndex: number) {
-		setSelectedClothIndex(itemIndex);
-	}
-
-	const handleSelectItem = async (itemId: number) => {
-		try {
-			setLoadingRecs(true);
-			const normalizedRecs = await fetchRecommendations(itemId);
-			setRecommendations(normalizedRecs);
-		} catch (error) {
-			console.error("Error fetching recommendations:", error);
-			setRecommendations(null);
-		} finally {
-			setLoadingRecs(false);
-		}
-	};
-
-	useEffect(() => {
-		if (selectedClothIndex === null) {
-			setRecommendations(null);
-			return;
-		}
-
-		const clickedItem = fetchItems[selectedClothIndex];
-		console.log("clickedItem", clickedItem);
-		if (!clickedItem) return; // extra guard
-
-		handleSelectItem(clickedItem.id);
-	}, [selectedClothIndex, fetchItems]);
-
 	return (
 		<>
 			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 				{fetchItems.map((item, index) => (
 					<div
 						key={index}
-						onClick={() => {
-							console.log("Clicked item index:", index);
-							console.log("Clicked item:", item);
-							handleClick(index);
-						}}
+						onClick={() => setSelectedClothIndex(index)}
 						className="bg-white rounded-lg shadow-md cursor-pointer"
 					>
 						<img
@@ -157,8 +119,6 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 				<ClothViewer
 					item={fetchItems[selectedClothIndex]}
 					isOpen={true}
-					isLoadingRecs={isLoadingRecs}
-					recommendations={recommendations}
 					onClose={() => setSelectedClothIndex(null)}
 				/>
 			)}
