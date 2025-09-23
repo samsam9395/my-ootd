@@ -2,7 +2,12 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { ClothRecommendationSet } from "@/types";
+import { ClothItem, ClothRecommendationSet } from "@/types";
+import {
+	fetchMoreData,
+	fetchRecommendations,
+	getPageClothesByType,
+} from "@/utils/api";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
@@ -34,10 +39,7 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 			const limit = 3;
 			const offset = 0;
 
-			const res = await fetch(
-				`/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
-			);
-			const data = await res.json();
+			const data = await getPageClothesByType(selectedCategory, limit, offset);
 
 			if (!cancelled) {
 				setFetchItems(data);
@@ -56,17 +58,12 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 	useEffect(() => {
 		if (page === 0 || !hasMore) return; // skip initial page fetch; handled above
 
-		const fetchMoreData = async () => {
+		const callFetchMoreData = async () => {
 			setIsLoading(true);
-			const limit = 3;
-			const offset = page * limit;
 
-			const res = await fetch(
-				`/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
-			);
-			const data = await res.json();
+			const data = await fetchMoreData(selectedCategory, page);
 
-			if (data.length === 0) {
+			if (!data || data.length === 0) {
 				setHasMore(false);
 			} else {
 				setFetchItems((prev) => [...prev, ...data]);
@@ -75,7 +72,7 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 			setIsLoading(false);
 		};
 
-		fetchMoreData();
+		callFetchMoreData();
 	}, [page, selectedCategory, hasMore]);
 
 	useEffect(() => {
@@ -106,42 +103,16 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 		setSelectedClothIndex(itemIndex);
 	}
 
-	async function fetchRecommendations(itemId: number) {
-		const res = await fetch(`${backendUrl}/recommend_ai`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ item_id: itemId }),
-		});
-		if (!res.ok) {
-			console.error("Failed to fetch recommendations");
-			return [];
-		}
-		const data = await res.json();
-		return data;
-	}
 	const handleSelectItem = async (itemId: number) => {
 		try {
-			setLoadingRecs(true); // start loader
-			const recs = await fetchRecommendations(itemId);
-
-			console.log("Fetched recommendations:", recs);
-			const normalizedRecs = {
-				_style_phrase: recs._style_phrase,
-				items: Object.entries(recs)
-					.filter(([key]) => key !== "_style_phrase")
-					.map(([category, item]) => ({
-						category,
-						item: item as ClothItem,
-					}))
-					.filter(({ item }) => item && item.id),
-			};
-			console.log("normalizedRecs", normalizedRecs);
+			setLoadingRecs(true);
+			const normalizedRecs = await fetchRecommendations(itemId);
 			setRecommendations(normalizedRecs);
 		} catch (error) {
 			console.error("Error fetching recommendations:", error);
-			setRecommendations(null); // fallback if error
+			setRecommendations(null);
 		} finally {
-			setLoadingRecs(false); // stop loader
+			setLoadingRecs(false);
 		}
 	};
 

@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Wardrobe from "./Wardrobe";
+import RandomCloset from "./RandomCloset";
 import Gallery from "./Gallery";
 import AddClothForm from "./AddClothForm";
 import { StyleTag } from "@/types";
@@ -27,6 +27,8 @@ export default function DashboardPage() {
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [dbTagStyles, setDbTagStyles] = useState<StyleTag[]>([]);
 
+	const [randomItemsArr, setRandomItemsArr] = useState([]);
+
 	function handleCategoryChange(category: string) {
 		router.push(`/dashboard?category=${category}`);
 	}
@@ -44,6 +46,15 @@ export default function DashboardPage() {
 		}
 		console.log("should run here");
 		getDBStyles().then((data) => setDbTagStyles(data));
+	}, []);
+
+	useEffect(() => {
+		async function fetchRandomItems() {
+			const res = await fetch(`${backendUrl}/get_random_clothes`);
+			const data = await res.json();
+			setRandomItemsArr(data);
+		}
+		fetchRandomItems();
 	}, []);
 
 	return (
@@ -72,9 +83,9 @@ export default function DashboardPage() {
 				</ul>
 			</aside>
 
-			{/* Right wardrobe */}
+			{/* Right Clothes Display */}
 			<main className="flex-1 flex flex-col pt-24 overflow-y-auto bg-white">
-				<div className="w-full px-6 mb-4 flex justify-start">
+				<div className="w-full px-6 flex justify-start mb-10">
 					<button
 						className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
 						onClick={() => setIsFormOpen(true)}
@@ -82,12 +93,14 @@ export default function DashboardPage() {
 						+ Add New Item To Closet
 					</button>
 				</div>
+				<div className="w-full px-6 mb-2">
+					<p className="text-gray-500 italic text-sm">
+						🎲 Today's lucky picks from your closet
+					</p>
+				</div>
+				<RandomCloset randomItemsArr={randomItemsArr} />
 				<div className="w-full px-6">
-					{selectedCategory == "all" ? (
-						<Wardrobe />
-					) : (
-						<Gallery selectedCategory={selectedCategory} />
-					)}
+					<Gallery selectedCategory={selectedCategory} />
 				</div>
 			</main>
 		</div>

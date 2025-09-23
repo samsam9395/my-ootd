@@ -8,6 +8,11 @@ export type ClothRecommendationSet = {
     items: { category: string; item: ClothItem }[];
 };
 
+export type ClothStyle = {
+    id: number;
+    name: string;
+};
+
 export type ClothItem = {
     id: number;
     name: string;
@@ -15,5 +20,5 @@ export type ClothItem = {
     colour: string;
     image_url: string;
     category: string;
-    styles: string[];
+    styles: ClothStyle[];
 };

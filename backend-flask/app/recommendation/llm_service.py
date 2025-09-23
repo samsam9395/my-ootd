@@ -5,38 +5,6 @@ import os
 
 OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
 
-# ---------- 2. Ask Hugging Face LLM ----------
-# def ask_ai_for_outfit(shortlist, selected_item, inference):
-#     # Build selected item text
-#     style_names = [cs['styles']['name'] for cs in selected_item.get('clothes_styles', [])]
-#     prompt = f"You are a fashion stylist. Suggest a set of matching outfit for:\n"
-#     prompt += f"- {selected_item['name']}, color: {selected_item['colour']}, style: {', '.join(style_names)}\n\n"
-
-#     # Flatten candidates (exclude the selected item itself)
-#     prompt += "Here are the candidates:\n"
-#     for category, items in shortlist.items():
-#         for item in items:
-#             if item['id'] == selected_item['id']:
-#                 continue  # skip the selected item
-#             item_styles = ", ".join([cs['styles']['name'] for cs in item.get("clothes_styles", [])])
-#             prompt += f"- {item['type']}: {item['name']}, color: {item['colour']}, styles: {item_styles}\n"
-
-#     # One instruction at the end
-#     prompt += (
-#         "\nPick ONE item from each category if available. "
-#         "Only include categories that have candidates. "
-#         "Return the outfit in the format: top, bottom, outerwear, shoes, accessories. "
-#         "For missing categories, just skip them."
-#     )
-
-#     print("AI prompt:", prompt)
-
-#     # gemma-3 returns plain text, use raw_response
-#     response = inference(prompt, raw_response=True)
-#     generated_text = response.content.decode("utf-8").strip()
-#     print("AI response:", generated_text)
-
-#     return generated_text
 
 def ask_openrouter_for_outfit(shortlist, selected_item):
     style_names = [cs['styles']['name'] for cs in selected_item.get('clothes_styles', [])]

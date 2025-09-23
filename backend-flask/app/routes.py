@@ -7,7 +7,8 @@ from .recommendation import (
     fetch_style_tags,
     create_style_tags,
     insert_cloth,
-    insert_cloth_style_relation
+    insert_cloth_style_relation,
+    get_random_items
 )
 
 import os
@@ -39,11 +40,13 @@ def recommend_cosine():
 def recommend_ai():
     data = request.json
     selected_item_id = data.get("item_id")
+    print("Selected item ID:", selected_item_id)
     try:
         outfit = recommend_outfit(
             selected_item_id=selected_item_id)
         return jsonify(outfit)
     except Exception as e:
+        print("Error in /recommend_ai:", e)
         return jsonify({"error": str(e)}), 500
     
 @bp.route("/get_style_tags", methods=["GET"])
@@ -107,3 +110,12 @@ def add_cloth_styles():
         return jsonify(response), 201
     except Exception as e:
         return jsonify({"message": str(e)}), 500
+
+@bp.route("/get_random_clothes", methods=["GET"])
+def get_random_clothes():
+    try:
+        items = get_random_items()
+        return jsonify(items)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    

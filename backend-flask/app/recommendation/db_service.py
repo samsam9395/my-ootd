@@ -17,23 +17,27 @@ def get_supabase():
 # Fetch all items
 def get_all_items():
     supabase = get_supabase()
-    response = supabase.table("clothes").select("""
-        id,
-        name,
-        type,
-        colour,
-        category,
-        image_url,
-        clothes_styles (
-            styles (
-                id,
-                name
+    try:
+        response = supabase.table("clothes").select("""
+            id,
+            name,
+            type,
+            colour,
+            category,
+            image_url,
+            clothes_styles (
+                styles (
+                    id,
+                    name
+                )
             )
-        )
-    """).execute()
-    if response.error:
-        raise Exception(f"Failed to fetch items: {response.error}")
-    return response.data
+        """).execute()
+        
+        return response.data
+    except Exception as e:
+        print("Error fetching items:", e)
+        return None
+   
 
 # Fetch all style tags
 def fetch_style_tags():
@@ -104,3 +108,16 @@ def insert_cloth_style_relation(cloth_styles):
     except Exception as e:
         print("Error inserting cloth styles:", e)
         return None
+
+# Get random 5 items for Shuffle
+def get_random_items():
+    supabase = get_supabase()
+    try:
+        response = supabase.rpc("get_random_clothes", {"limit_count": 5}).execute()
+        return response.data
+
+    except Exception as e:
+        print("Error fetching random items:", e)
+        return None
+    
+    
