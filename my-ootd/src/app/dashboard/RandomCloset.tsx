@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { ClothItem, ClothRecommendationSet } from "@/types";
 import { fetchRecommendations } from "@/utils/api";
 import Loader from "@/components/common/loader";
+import { motion } from "framer-motion";
 
 type RandomClosetProps = { randomItemsArr: ClothItem[] };
 
@@ -13,6 +14,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 	const [selectedCloth, setSelectedCloth] = useState<number | null>(null);
 	const [modalItem, setModalItem] = useState<ClothItem | null>(null);
 	const [recIsLoading, setRecIsLoading] = useState(false);
+	const [imgLoaded, setImgLoaded] = useState(false);
 	const total = randomItemsArr?.length;
 
 	const selectedItem =
@@ -58,19 +60,14 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 		} finally {
 			setRecIsLoading(false);
 		}
-		const filtered = randomItemsArr.filter(
-			(item) =>
-				item.id !== selectedClothItem.id && item.type !== selectedClothItem.type
-		);
-		const recommendations = filtered.sort((a, b) =>
-			a.colour === selectedClothItem.colour ? -1 : 0
-		);
-		console.log("Filtered recommendations:", recommendations.slice(0, 3));
-		return recommendations.slice(0, 3);
 	}
-	console.log("modalItem", modalItem);
+
 	return (
-		<div className="w-full flex flex-col items-center justify-center  mb-20">
+		<div
+			className={`w-full flex flex-col items-center justify-center mb-20 ${
+				recIsLoading ? "pointer-events-none opacity-70" : ""
+			}`}
+		>
 			{/* Left Arrow */}
 
 			<div className="relative w-96 h-80 perspective-1000 group">
@@ -98,8 +95,8 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 					if (diff < -Math.floor(total / 2)) diff += total;
 					if (diff > Math.floor(total / 2)) diff -= total;
 
-					const angle = diff * 35;
-					const zOffset = -Math.abs(diff) * 300;
+					const angle = diff * 25;
+					const zOffset = -Math.abs(diff) * 130;
 					const scale = diff === 0 ? 1 : 0.5;
 
 					return (
@@ -166,31 +163,41 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 			{/* Modal for large image */}
 			{modalItem && (
 				<div
-					className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+					className="fixed inset-0 bg-black/50 flex items-center justify-center z-50
+               opacity-0 animate-fadeIn"
 					onClick={() => setModalItem(null)}
 				>
-					<div
+					<motion.div
 						className="relative bg-white rounded-xl p-4 max-w-md w-full max-h-[80vh] overflow-auto"
-						onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+						onClick={(e) => e.stopPropagation()}
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						exit={{ opacity: 0, scale: 0.95 }}
+						transition={{ duration: 0.2 }}
 					>
 						<button
-							className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+							className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 cursor-pointer"
 							onClick={() => setModalItem(null)}
 						>
-							<X size={24} className="hover:cursor-pointer" />
+							<X size={26} />
 						</button>
+
 						<img
 							src={modalItem.image_url}
 							alt={modalItem?.name}
-							className="w-full max-h object-cover rounded-lg mb-3"
+							onLoad={() => setImgLoaded(true)}
+							className={`w-full max-h object-cover rounded-lg mb-3 transition-opacity duration-300 ${
+								imgLoaded ? "opacity-100" : "opacity-0"
+							}`}
 						/>
+
 						<h3 className="font-bold text-lg">{modalItem?.name}</h3>
 						<p className="text-gray-500">{modalItem?.type}</p>
 						<p className="text-gray-400 text-sm">{modalItem?.colour}</p>
 						<div className="flex text-gray-400 text-sm">
 							{modalItem?.styles.map((s) => s.name).join(", ")}
 						</div>
-					</div>
+					</motion.div>
 				</div>
 			)}
 		</div>

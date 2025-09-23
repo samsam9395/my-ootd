@@ -71,7 +71,7 @@ export default function DashboardPage() {
 					{categories.map((cat) => (
 						<li key={cat}>
 							<button
-								className={`hover:underline ${
+								className={`hover:underline cursor-pointer ${
 									selectedCategory === cat ? "font-bold text-black-800 " : ""
 								}`}
 								onClick={() => handleCategoryChange(cat)}
