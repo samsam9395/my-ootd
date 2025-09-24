@@ -125,7 +125,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 							</div>
 							<Loader />
 						</div>
-					) : recResponse ? (
+					) : recResponse && recResponse.items.length > 0 ? (
 						<>
 							<h3 className="font-bold text-lg mb-2">
 								Suggested items for "{selectedItem.name}"

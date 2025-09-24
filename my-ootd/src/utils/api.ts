@@ -1,6 +1,6 @@
 import { ClothItem, ClothRecommendationSet } from "@/types";
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
 
 export const handleApiResponse = async (res: Response, stepName: string) => {
     if (!res.ok) {
@@ -22,7 +22,7 @@ export const getPageClothesByType = async (
 }
 
 export const addStyleTags = async (names: string[]) => {
-    const res = await fetch(`${backendUrl}/add_style_tags`, {
+    const res = await fetch(`${backendUrl}/style-tags`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ names }),
@@ -33,11 +33,13 @@ export const addStyleTags = async (names: string[]) => {
 export const addCloth = async (payload: {
     name: string;
     type: string;
-    // category: string;
+    category: string;
     colour: string;
     image_url: string;
 }) => {
-    const res = await fetch(`${backendUrl}/add_cloth`, {
+
+    console.log('payload for adding cloth', payload);
+    const res = await fetch(`${backendUrl}/clothes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -48,7 +50,7 @@ export const addCloth = async (payload: {
 export const addClothStylesRelation = async (
     clothStylesPayload: { cloth_id: number; style_id: number }[]
 ) => {
-    const res = await fetch(`${backendUrl}/add_cloth_styles`, {
+    const res = await fetch(`${backendUrl}/cloth_styles`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(clothStylesPayload),
@@ -78,7 +80,7 @@ function normalizeRecommendations(recs: any): ClothRecommendationSet | null {
 }
 
 export async function fetchRecommendations(itemId: number) {
-    const res = await fetch(`${backendUrl}/recommend_ai`, {
+    const res = await fetch(`${backendUrl}/recommendations/ai`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ item_id: itemId }),
@@ -109,7 +111,7 @@ export const updateCloth = async (clothId: number, payload: {
     type?: string;
     colour?: string;
 }) => {
-    const res = await fetch(`${backendUrl}/update_cloth/${clothId}`, {
+    const res = await fetch(`${backendUrl}/clothes/${clothId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

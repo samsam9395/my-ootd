@@ -17,7 +17,7 @@ const categories = [
 	"accessory",
 ];
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
 
 export default function ClosetPage() {
 	const searchParams = useSearchParams();
@@ -40,17 +40,16 @@ export default function ClosetPage() {
 
 	useEffect(() => {
 		async function getDBStyles() {
-			console.log("url is", `${backendUrl}/get_style_tags`);
-			const styles = await fetch(`${backendUrl}/get_style_tags`);
+			const styles = await fetch(`${backendUrl}/style-tags`); // GET
 			return styles.json();
 		}
-		console.log("should run here");
+
 		getDBStyles().then((data) => setDbTagStyles(data));
 	}, []);
 
 	useEffect(() => {
 		async function fetchRandomItems() {
-			const res = await fetch(`${backendUrl}/get_random_clothes`);
+			const res = await fetch(`${backendUrl}/clothes/random`);
 			const data = await res.json();
 			setRandomItemsArr(data);
 		}

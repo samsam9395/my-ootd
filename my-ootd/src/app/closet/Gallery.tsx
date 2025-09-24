@@ -95,6 +95,12 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 		};
 	}, [isLoading, hasMore]);
 
+	const handleSaveItemUpdate = () => {
+		// Refresh the item in the gallery after save
+	};
+	const handleDeleteItem = () => {
+		// Remove the item from the gallery after delete
+	};
 	return (
 		<>
 			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -120,8 +126,8 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 					item={fetchItems[selectedClothIndex]}
 					isOpen={true}
 					onClose={() => setSelectedClothIndex(null)}
-					onSave={() => {}}
-					onDelete={() => {}}
+					onSave={() => handleSaveItemUpdate()}
+					onDelete={() => handleDeleteItem()}
 				/>
 			)}
 			{isLoading && <Loader />}

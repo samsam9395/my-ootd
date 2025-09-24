@@ -70,7 +70,15 @@ export default function AddClothForm({
 	}, [dbTagStyles]);
 
 	const uploadImageToSupabase = async (file: File) => {
-		const fileName = `${Date.now()}-${file.name}`;
+		const sanitizeFileName = (name: string) => {
+			return name
+				.normalize("NFKD") // separate accents from letters
+				.replace(/[\u0300-\u036f]/g, "") // remove accents
+				.replace(/\s+/g, "_") // replace spaces
+				.replace(/[^a-zA-Z0-9_\-\.]/g, ""); // remove other unsafe chars
+		};
+
+		const fileName = `${Date.now()}-${sanitizeFileName(file.name)}`;
 		const { error } = await supabase.storage
 			.from("clothes-images")
 			.upload(fileName, file);
@@ -142,7 +150,7 @@ export default function AddClothForm({
 			const newCloth = await addCloth({
 				name,
 				type,
-				// category: typeToCategory[type],
+				category: typeToCategory[type],
 				colour,
 				image_url: publicUrl,
 			});

@@ -8,14 +8,75 @@ from .recommendation import (
     create_style_tags,
     insert_cloth,
     insert_cloth_style_relation,
-    get_random_items
+    get_random_items,
+    update_cloth_in_db,
+    delete_cloth_in_db
 )
 
 import os
 
 bp = Blueprint("routes", __name__)
 
-@bp.route("/recommend_cosine",methods=["POST"])
+#Create new cloth item
+@bp.route("/api/clothes", methods=["POST"])
+def add_cloth():
+    """
+    Expecting JSON body:
+    {
+        "name": "T-shirt",
+        "colour": "Red",
+        "image_url": "https://..."
+    }
+    """
+    data = request.json
+    print('request data:', data)
+    # Basic validation
+    if not all([data.get("name"), data.get("type"), data.get("category"),
+                data.get("colour"), data.get("image_url")]):
+        return jsonify({"message": "Missing required fields"}), 400
+
+    cloth = insert_cloth(
+    name=data.get("name", "").strip(),
+    type_=data.get("type", "").strip(),
+    category=data.get("category", "").strip(),
+    colour=data.get("colour", "").strip(),
+    image_url=data.get("image_url", "").strip()
+)
+    if not cloth:
+        return jsonify({"message": "Insert failed"}), 500
+
+    return jsonify(cloth), 201
+
+
+# Update existing cloth itemupdate_cloth
+@bp.route("/api/clothes/<int:id>", methods=["PUT"])
+def update_cloth(id):
+    data = request.json
+    try:
+        updated_cloth = update_cloth_in_db(
+            cloth_id=id,
+            name=data.get("name"),
+            type_=data.get("type"),
+            colour=data.get("colour"),
+        )
+        if not updated_cloth:
+            return jsonify({"message": "No valid fields to update"}), 400
+        return jsonify(updated_cloth)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+# Get random clothes for Shuffle
+@bp.route("/api/clothes/random", methods=["GET"])
+def get_random_clothes():
+    try:
+        items = get_random_items()
+        return jsonify(items)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+# Cosine similarity recommendation
+@bp.route("/api/recommendations/cosine",methods=["POST"])
 def recommend_cosine():
     data = request.json
     selected_item_id = data.get("item_id")
@@ -35,8 +96,8 @@ def recommend_cosine():
     )
     return jsonify(recs)
 
-
-@bp.route("/recommend_ai", methods=["POST"])
+# AI-based recommendation
+@bp.route("/api/recommendations/ai", methods=["POST"])
 def recommend_ai():
     data = request.json
     selected_item_id = data.get("item_id")
@@ -48,13 +109,15 @@ def recommend_ai():
     except Exception as e:
         print("Error in /recommend_ai:", e)
         return jsonify({"error": str(e)}), 500
-    
-@bp.route("/get_style_tags", methods=["GET"])
+
+# Fetch style tags
+@bp.route("/api/style-tags", methods=["GET"])
 def get_style_tags():
     tags = fetch_style_tags()
     return jsonify(tags)
 
-@bp.route("/add_style_tags", methods=["POST"])
+# Add new style tags
+@bp.route("/api/style-tags", methods=["POST"])
 def add_style_tags():
     data = request.json
     """
@@ -69,31 +132,9 @@ def add_style_tags():
     )
     return jsonify(add_styles_res)
 
-@bp.route("/add_cloth", methods=["POST"])
-def add_cloth():
-    """
-    Expecting JSON body:
-    {
-        "name": "T-shirt",
-        "colour": "Red",
-        "image_url": "https://..."
-    }
-    """
-    data = request.json
-    # Basic validation
-    if not all([data.get("name"), data.get("type"), data.get("category"),
-                data.get("colour"), data.get("image_url")]):
-        return jsonify({"message": "Missing required fields"}), 400
 
-    cloth = insert_cloth(
-        data["name"], data["type"], data["category"], data["colour"], data["image_url"]
-    )
-    if not cloth:
-        return jsonify({"message": "Insert failed"}), 500
-
-    return jsonify(cloth), 201
-    
-@bp.route("/add_cloth_styles", methods=["POST"])
+# Add styles to a cloth item
+@bp.route("/api/cloth_styles", methods=["POST"])
 def add_cloth_styles():
     """
     Expecting JSON body:
@@ -103,39 +144,25 @@ def add_cloth_styles():
     ]
     """
     data = request.json
+    print("Received cloth-style relation data:", data)
     if not isinstance(data, list) or not data:
         return jsonify({"message": "Invalid input, expected a non-empty list"}), 400
     try:
         response = insert_cloth_style_relation(data)
+        print("Insert cloth-style relation response:", response)
         return jsonify(response), 201
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
-@bp.route("/get_random_clothes", methods=["GET"])
-def get_random_clothes():
+#Delete cloth item
+@bp.route("/api/clothes/<int:id>", methods=["DELETE"])
+def delete_cloth(id):
+    if not id:
+        return jsonify({"message": "Cloth ID is required"}), 400
     try:
-        items = get_random_items()
-        return jsonify(items)
+        success = delete_cloth_in_db(id)
+        if not success:
+            return jsonify({"message": "Cloth not found or delete failed"}), 404
+        return jsonify({"message": "Cloth deleted successfully"}), 200
     except Exception as e:
         return jsonify({"message": str(e)}), 500
-
-@bp.route("/update_cloth", methods=["PUT"])
-def update_cloth():
-    data = request.json
-    cloth_id = data.get("id")
-    if not cloth_id:
-        return jsonify({"message": "Missing cloth ID"}), 400
-    # Fetch existing item
-    existing_items = get_all_items()
-    existing_item = next((item for item in existing_items if item['id'] == cloth_id), None)
-    if not existing_item:
-        return jsonify({"message": "Cloth not found"}), 404
-    
-    # Update fields if provided, else keep existing
-    name = data.get("name", existing_item["name"])
-    type_ = data.get("type", existing_item["type"])
-    colour = data.get("colour", existing_item["colour"])
-    updated_cloth = insert_cloth(name, type_,  colour)
-    if not updated_cloth:
-        return jsonify({"message": "Update failed"}), 500
-    return jsonify(updated_cloth), 200
