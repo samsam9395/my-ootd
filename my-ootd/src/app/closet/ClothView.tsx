@@ -4,22 +4,33 @@ import Loader from "@/components/common/loader";
 import { ClothItem, ClothRecommendationSet } from "@/types";
 import { fetchRecommendations } from "@/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Ellipsis } from "lucide-react";
 import { useState } from "react";
+import ClothViewRecommendations from "./ClothViewRecommendations";
+import ClothViewEditForm from "./ClothViewEditForm";
 
 type ClothViewProps = {
 	isOpen: boolean;
 	item: ClothItem | null;
 	onClose: () => void;
+	onSave: () => void;
+	onDelete: () => void;
 };
 
-export default function ClothView({ isOpen, item, onClose }: ClothViewProps) {
+export default function ClothView({
+	isOpen,
+	item,
+	onClose,
+	onSave,
+	onDelete,
+}: ClothViewProps) {
 	if (!item) return null;
 
 	const [isLoadingRecs, setIsLoadingRecs] = useState(false);
 	const [recommendations, setRecommendations] =
 		useState<ClothRecommendationSet | null>(null);
 	const [hasTriedAISuggestions, setHasTriedAISuggestions] = useState(false);
+	const [isEditMode, setIsEditMode] = useState(false);
 
 	const handleFetchRecommendations = async (itemId: number) => {
 		try {
@@ -33,6 +44,10 @@ export default function ClothView({ isOpen, item, onClose }: ClothViewProps) {
 		} finally {
 			setIsLoadingRecs(false);
 		}
+	};
+
+	const handleManageClick = () => {
+		setIsEditMode((prev) => !prev);
 	};
 	return (
 		<AnimatePresence>
@@ -50,8 +65,16 @@ export default function ClothView({ isOpen, item, onClose }: ClothViewProps) {
 						exit={{ y: 50, opacity: 0 }}
 						className="bg-white rounded-lg max-h-full overflow-auto w-full max-w-3xl p-6 pt-15 relative flex flex-col md:flex-row gap-4"
 					>
-						{/* Close button */}
+						{/* Manage Button */}
+						<button
+							onClick={handleManageClick}
+							className="absolute top-4 left-4 text-black font-bold z-20 cursor-pointer"
+							aria-label="Manage"
+						>
+							<Ellipsis size={24} />
+						</button>
 
+						{/* Close button */}
 						<button
 							onClick={onClose}
 							className="absolute top-4 right-4 text-black font-bold z-20 cursor-pointer"
@@ -67,67 +90,23 @@ export default function ClothView({ isOpen, item, onClose }: ClothViewProps) {
 								className="max-h-[70vh] w-auto md:w-full object-cover rounded-lg"
 							/>
 						</div>
-
-						{/* Recommendations + Button */}
-						<div className="flex-1 flex flex-col gap-4 w-full max-w-3xl mx-auto md:overflow-y-auto mt-4 md:mt-0">
-							{/* Generate button */}
-							{!recommendations && !isLoadingRecs && (
-								<button
-									className="bg-black text-white py-2 px-4 rounded transition cursor-pointer"
-									onClick={async () => handleFetchRecommendations(item.id)}
-								>
-									Generate AI Suggestions
-								</button>
-							)}
-
-							{/* Loader */}
-							{isLoadingRecs && (
-								<div className="flex w-full flex-col items-center mt-6">
-									<div className="text-gray-700 italic text-md mb-2">
-										Curating your chic look… This takes a moment!
-									</div>
-									<Loader />
-								</div>
-							)}
-
-							{/* Recommendations */}
-							{recommendations && !isLoadingRecs && (
-								<div className="flex flex-col gap-4 mt-6">
-									<div className="border border-gray-200 rounded-lg p-2 flex flex-col gap-2">
-										{recommendations._style_phrase && (
-											<div className="text-gray-700 italic text-md mb-2">
-												Recommend theme: {recommendations._style_phrase}
-											</div>
-										)}
-										{recommendations.items
-											.filter(({ item }) => item && item.id)
-											.map(({ category, item }) => (
-												<div
-													key={item.id}
-													className="flex flex-row items-center gap-2"
-												>
-													<img
-														src={item.image_url}
-														alt={item.name}
-														className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg"
-													/>
-													<div className="flex flex-col text-sm">
-														<span className="font-semibold">{item.name}</span>
-														<span className="text-gray-500">{category}</span>
-													</div>
-												</div>
-											))}
-									</div>
-								</div>
-							)}
-
-							{/* No recommendations */}
-							{hasTriedAISuggestions && !recommendations && !isLoadingRecs && (
-								<div className="text-gray-500 text-sm p-2">
-									No recommendations yet
-								</div>
-							)}
-						</div>
+						{isEditMode ? (
+							<ClothViewEditForm
+								item={item}
+								onSave={onSave}
+								onDelete={onDelete}
+								setIsEditMode={setIsEditMode}
+							/>
+						) : (
+							<ClothViewRecommendations
+								isLoadingRecs={isLoadingRecs}
+								recommendations={recommendations}
+								hasTriedAISuggestions={hasTriedAISuggestions}
+								onFetchRecommendations={() =>
+									handleFetchRecommendations(item.id)
+								}
+							/>
+						)}
 					</motion.div>
 				</motion.div>
 			)}

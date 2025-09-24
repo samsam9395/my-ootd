@@ -33,7 +33,7 @@ export const addStyleTags = async (names: string[]) => {
 export const addCloth = async (payload: {
     name: string;
     type: string;
-    category: string;
+    // category: string;
     colour: string;
     image_url: string;
 }) => {
@@ -103,3 +103,23 @@ export const fetchMoreData = async (selectedCategory: string, page: number) => {
 
     return data;
 };
+
+export const updateCloth = async (clothId: number, payload: {
+    name?: string;
+    type?: string;
+    colour?: string;
+}) => {
+    const res = await fetch(`${backendUrl}/update_cloth/${clothId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res, "Updating cloth");
+}
+
+export const deleteCloth = async (clothId: number) => {
+    const res = await fetch(`${backendUrl}/delete_cloth/${clothId}`, {
+        method: "DELETE",
+    });
+    return handleApiResponse(res, "Deleting cloth");
+}

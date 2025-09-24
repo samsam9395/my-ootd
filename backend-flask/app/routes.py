@@ -118,4 +118,24 @@ def get_random_clothes():
         return jsonify(items)
     except Exception as e:
         return jsonify({"message": str(e)}), 500
+
+@bp.route("/update_cloth", methods=["PUT"])
+def update_cloth():
+    data = request.json
+    cloth_id = data.get("id")
+    if not cloth_id:
+        return jsonify({"message": "Missing cloth ID"}), 400
+    # Fetch existing item
+    existing_items = get_all_items()
+    existing_item = next((item for item in existing_items if item['id'] == cloth_id), None)
+    if not existing_item:
+        return jsonify({"message": "Cloth not found"}), 404
     
+    # Update fields if provided, else keep existing
+    name = data.get("name", existing_item["name"])
+    type_ = data.get("type", existing_item["type"])
+    colour = data.get("colour", existing_item["colour"])
+    updated_cloth = insert_cloth(name, type_,  colour)
+    if not updated_cloth:
+        return jsonify({"message": "Update failed"}), 500
+    return jsonify(updated_cloth), 200

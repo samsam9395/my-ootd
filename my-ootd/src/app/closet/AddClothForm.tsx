@@ -142,7 +142,7 @@ export default function AddClothForm({
 			const newCloth = await addCloth({
 				name,
 				type,
-				category: typeToCategory[type],
+				// category: typeToCategory[type],
 				colour,
 				image_url: publicUrl,
 			});

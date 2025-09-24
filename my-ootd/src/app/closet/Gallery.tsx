@@ -120,6 +120,8 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 					item={fetchItems[selectedClothIndex]}
 					isOpen={true}
 					onClose={() => setSelectedClothIndex(null)}
+					onSave={() => {}}
+					onDelete={() => {}}
 				/>
 			)}
 			{isLoading && <Loader />}
