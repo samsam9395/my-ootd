@@ -54,6 +54,9 @@ def fetch_style_tags():
 def create_style_tags(names):
     supabase = get_supabase()
     new_tags = [{"name": name.strip().lower()} for name in names if name.strip()]
+    
+    if not new_tags:  # nothing new
+        return []  
 
     try:
         response = supabase.table("styles").upsert(new_tags).execute()
@@ -125,30 +128,46 @@ def insert_cloth(name,type_, category, colour, image_url):
         return None
 
 
-# Update existing cloth item
-def update_cloth_in_db(cloth_id, name=None, type_=None, colour=None):
+    # Update existing cloth item using RPC (transactional)
+def update_cloth_in_db(cloth_id, cloth_data):
     supabase = get_supabase()
-    updates = {}
-    if name is not None:
-        updates["name"] = name
-    if type_ is not None:
-        updates["type"] = type_
-    if colour is not None:
-        updates["colour"] = colour
 
-    if not updates:
-        return None  # nothing to update
+    try:
+        # 1. Extract style IDs from input
+        style_ids = []
+        new_style_names = []
 
-    result = (
-        supabase.table("clothes")
-        .update(updates)
-        .eq("id", cloth_id)
-        .execute()
-    )
+        for s in cloth_data.get("styles", []):
+            if s.get("id"):  # existing style
+                style_ids.append(int(s["id"]))
+            elif s.get("name"):  # new style
+                new_style_names.append(s["name"].strip().lower())
 
-    if not result.data:
-        return None
-    return result.data[0]
+        # 2. Ensure new styles exist (returns rows with IDs)
+        new_style_rows = create_style_tags(new_style_names) if new_style_names else []
+
+        # 3. Combine all style IDs
+        all_style_ids = style_ids + [row["id"] for row in (new_style_rows or [])]
+
+        # 4. Call the RPC to update cloth and relations in a transaction
+        response = supabase.rpc(
+    "update_cloth_with_styles",
+    {
+        "p_cloth_id": cloth_id,
+        "p_name": cloth_data["name"],
+        "p_colour": cloth_data["colour"],
+        "p_type": cloth_data["type"],
+        "p_style_ids": all_style_ids  # list of integers
+    }
+).execute()
+        print("RPC response:", response)
+
+        return {"success": True}
+
+    except Exception as e:
+        print("Error in update_cloth_in_db:", e)
+        return {"success": False, "error": str(e)}
+        
 
 # Delete cloth item
 def delete_cloth_in_db(cloth_id: int) -> bool:

@@ -16,7 +16,7 @@ def create_app():
     app.config["OPEN_ROUTER_API_KEY"] = os.getenv("OPEN_ROUTER_API_KEY")
 
    # Allow all routes from localhost:3000 (dev only)
-    CORS(app, origins=["http://localhost:3000"], supports_credentials=True, methods=["GET","POST","OPTIONS"])
+    CORS(app, origins=["http://localhost:3000"], supports_credentials=True,  methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
     # Register routes
     from .routes import bp as routes_bp

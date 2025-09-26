@@ -53,17 +53,12 @@ def add_cloth():
 def update_cloth(id):
     data = request.json
     try:
-        updated_cloth = update_cloth_in_db(
-            cloth_id=id,
-            name=data.get("name"),
-            type_=data.get("type"),
-            colour=data.get("colour"),
-        )
-        if not updated_cloth:
+        result = update_cloth_in_db(id, data)
+        if not id or not data:
             return jsonify({"message": "No valid fields to update"}), 400
-        return jsonify(updated_cloth)
+        return jsonify({"success": True, "updated": result}), 200
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 # Get random clothes for Shuffle
