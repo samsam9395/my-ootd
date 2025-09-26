@@ -1,4 +1,4 @@
-import { ClothItem, ClothRecommendationSet } from "@/types";
+import { ClothItem, ClothRecommendationSet, UpdateClothPayload } from "@/types";
 
 const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
 
@@ -19,6 +19,11 @@ export const getPageClothesByType = async (
         `/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
     );
     return handleApiResponse(res, "Fetching clothes");
+}
+
+export const getStyleTags = async () => {
+    const res = await fetch(`${backendUrl}/style-tags`);
+    return handleApiResponse(res, "Fetching style tags");
 }
 
 export const addStyleTags = async (names: string[]) => {
@@ -106,11 +111,11 @@ export const fetchMoreData = async (selectedCategory: string, page: number) => {
     return data;
 };
 
-export const updateCloth = async (clothId: number, payload: {
-    name?: string;
-    type?: string;
-    colour?: string;
-}) => {
+export const updateCloth = async (updatePayload: { clothId: number; payload: UpdateClothPayload }) => {
+    const clothId = updatePayload.clothId;
+    const payload = updatePayload.payload;
+    console.log('calling url:', `${backendUrl}/clothes/${clothId}`);
+
     const res = await fetch(`${backendUrl}/clothes/${clothId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

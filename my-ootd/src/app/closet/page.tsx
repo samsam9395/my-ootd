@@ -6,6 +6,7 @@ import RandomCloset from "./RandomCloset";
 import Gallery from "./Gallery";
 import AddClothForm from "./AddClothForm";
 import { StyleTag } from "@/types";
+import { getStyleTags } from "@/utils/api";
 
 const categories = [
 	"all",
@@ -40,11 +41,11 @@ export default function ClosetPage() {
 
 	useEffect(() => {
 		async function getDBStyles() {
-			const styles = await fetch(`${backendUrl}/style-tags`); // GET
-			return styles.json();
+			const styles = await getStyleTags();
+			setDbTagStyles(styles);
 		}
 
-		getDBStyles().then((data) => setDbTagStyles(data));
+		getDBStyles();
 	}, []);
 
 	useEffect(() => {
@@ -99,7 +100,10 @@ export default function ClosetPage() {
 				</div>
 				<RandomCloset randomItemsArr={randomItemsArr} />
 				<div className="w-full px-6">
-					<Gallery selectedCategory={selectedCategory} />
+					<Gallery
+						selectedCategory={selectedCategory}
+						dbTagStyles={dbTagStyles}
+					/>
 				</div>
 			</main>
 		</div>

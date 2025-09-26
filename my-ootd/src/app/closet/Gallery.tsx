@@ -2,15 +2,32 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { ClothRecommendationSet } from "@/types";
-import { fetchMoreData, getPageClothesByType } from "@/utils/api";
+import { ClothRecommendationSet, StyleTag, UpdateClothPayload } from "@/types";
+import { fetchMoreData, getPageClothesByType, updateCloth } from "@/utils/api";
+import { useAlert } from "@/contexts/AlertContext";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
-type GalleryProps = { selectedCategory: string };
+export const clothingTypes = [
+	{ type: "top", category: "top" },
+	{ type: "bottom", category: "bottom" },
+	{ type: "sunglass", category: "accessory" },
+	{ type: "bag", category: "accessory" },
+	{ type: "skirt", category: "bottom" },
+	{ type: "jacket", category: "outerwear" },
+	{ type: "dress", category: "dress" },
+	{ type: "shoes", category: "shoes" },
+	{ type: "accessory", category: "accessory" },
+];
 
-export default function Gallery({ selectedCategory }: GalleryProps) {
+type GalleryProps = { selectedCategory: string; dbTagStyles?: StyleTag[] };
+
+export default function Gallery({
+	selectedCategory,
+	dbTagStyles,
+}: GalleryProps) {
 	const loaderRef = useRef<HTMLDivElement>(null);
+	const { showAlert } = useAlert();
 
 	const [fetchItems, setFetchItems] = useState<any[]>([]);
 	const [page, setPage] = useState(0);
@@ -20,9 +37,7 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 	const [selectedClothIndex, setSelectedClothIndex] = useState<number | null>(
 		null
 	);
-	const [recommendations, setRecommendations] =
-		useState<ClothRecommendationSet | null>(null);
-	const [isLoadingRecs, setLoadingRecs] = useState(false);
+	const [refreshKey, setRefreshKey] = useState(0);
 	useEffect(() => {
 		let cancelled = false;
 
@@ -49,7 +64,7 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 		return () => {
 			cancelled = true;
 		};
-	}, [selectedCategory]);
+	}, [selectedCategory, refreshKey]);
 
 	useEffect(() => {
 		if (page === 0 || !hasMore) return; // skip initial page fetch; handled above
@@ -95,8 +110,17 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 		};
 	}, [isLoading, hasMore]);
 
-	const handleSaveItemUpdate = () => {
+	const handleSaveItemUpdate = async (updatePayload: {
+		clothId: number;
+		payload: UpdateClothPayload;
+	}) => {
 		// Refresh the item in the gallery after save
+		const res = await updateCloth(updatePayload); // your API call
+		if (res.success) {
+			return res; // resolved promise, success
+		} else {
+			throw new Error(res.error || "Failed to update"); // rejected promise
+		}
 	};
 	const handleDeleteItem = () => {
 		// Remove the item from the gallery after delete
@@ -123,10 +147,11 @@ export default function Gallery({ selectedCategory }: GalleryProps) {
 			</div>
 			{selectedClothIndex !== null && fetchItems[selectedClothIndex] && (
 				<ClothViewer
+					dbTagStyles={dbTagStyles ?? []}
 					item={fetchItems[selectedClothIndex]}
 					isOpen={true}
 					onClose={() => setSelectedClothIndex(null)}
-					onSave={() => handleSaveItemUpdate()}
+					onSave={(updatePayload) => handleSaveItemUpdate(updatePayload)}
 					onDelete={() => handleDeleteItem()}
 				/>
 			)}

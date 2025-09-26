@@ -1,7 +1,12 @@
 "use client";
 
 import Loader from "@/components/common/loader";
-import { ClothItem, ClothRecommendationSet } from "@/types";
+import {
+	ClothItem,
+	ClothRecommendationSet,
+	StyleTag,
+	UpdateClothPayload,
+} from "@/types";
 import { fetchRecommendations } from "@/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Ellipsis } from "lucide-react";
@@ -10,14 +15,19 @@ import ClothViewRecommendations from "./ClothViewRecommendations";
 import ClothViewEditForm from "./ClothViewEditForm";
 
 type ClothViewProps = {
+	dbTagStyles: StyleTag[];
 	isOpen: boolean;
 	item: ClothItem | null;
 	onClose: () => void;
-	onSave: () => void;
+	onSave: (payload: {
+		clothId: number;
+		payload: UpdateClothPayload;
+	}) => Promise<any>;
 	onDelete: () => void;
 };
 
 export default function ClothView({
+	dbTagStyles,
 	isOpen,
 	item,
 	onClose,
@@ -83,30 +93,34 @@ export default function ClothView({
 							<X size={24} />
 						</button>
 						{/* Main image */}
-						<div className="flex-1 flex justify-center items-center">
+						<div className="w-full md:w-[400px] flex justify-center items-center shrink-0">
 							<img
 								src={item.image_url}
 								alt={item.name}
 								className="max-h-[70vh] w-auto md:w-full object-cover rounded-lg"
 							/>
 						</div>
-						{isEditMode ? (
-							<ClothViewEditForm
-								item={item}
-								onSave={onSave}
-								onDelete={onDelete}
-								setIsEditMode={setIsEditMode}
-							/>
-						) : (
-							<ClothViewRecommendations
-								isLoadingRecs={isLoadingRecs}
-								recommendations={recommendations}
-								hasTriedAISuggestions={hasTriedAISuggestions}
-								onFetchRecommendations={() =>
-									handleFetchRecommendations(item.id)
-								}
-							/>
-						)}
+						<div className="flex-1 w-full">
+							{isEditMode ? (
+								<ClothViewEditForm
+									dbTagStyles={dbTagStyles}
+									item={item}
+									onSave={onSave}
+									onClose={onClose}
+									onDelete={onDelete}
+									setIsEditMode={setIsEditMode}
+								/>
+							) : (
+								<ClothViewRecommendations
+									isLoadingRecs={isLoadingRecs}
+									recommendations={recommendations}
+									hasTriedAISuggestions={hasTriedAISuggestions}
+									onFetchRecommendations={() =>
+										handleFetchRecommendations(item.id)
+									}
+								/>
+							)}
+						</div>
 					</motion.div>
 				</motion.div>
 			)}

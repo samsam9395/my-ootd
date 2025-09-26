@@ -5,6 +5,8 @@ import FullPageLoader from "@/components/common/fullPageLoader";
 import { useAlert } from "@/contexts/AlertContext";
 import { addCloth, addClothStylesRelation, addStyleTags } from "@/utils/api";
 import { StyleTag } from "@/types";
+import { X } from "lucide-react";
+import { clothingTypes } from "./Gallery";
 
 interface Cloth {
 	id?: string;
@@ -21,30 +23,6 @@ interface AddClothFormProps {
 	dbTagStyles?: StyleTag[];
 }
 
-const types = [
-	"top",
-	"bottom",
-	"sunglass",
-	"bag",
-	"skirt",
-	"jacket",
-	"dress",
-	"shoes",
-	"accessory",
-];
-
-const typeToCategory: Record<string, string> = {
-	top: "top",
-	bottom: "bottom",
-	sunglass: "accessory",
-	bag: "accessory",
-	skirt: "bottom",
-	jacket: "outerwear",
-	dress: "dress",
-	shoes: "shoes",
-	accessory: "accessory",
-};
-
 export default function AddClothForm({
 	isOpen,
 	onClose,
@@ -53,7 +31,7 @@ export default function AddClothForm({
 }: AddClothFormProps) {
 	const [name, setName] = useState(existingCloth?.name || "");
 	const [colour, setColour] = useState(existingCloth?.colour || "");
-	const [type, setType] = useState(types[0]);
+	const [type, setType] = useState(clothingTypes[0].type);
 	const [image, setImage] = useState<File | null>(null);
 	const [loading, setLoading] = useState(false);
 	const { showAlert } = useAlert();
@@ -150,7 +128,7 @@ export default function AddClothForm({
 			const newCloth = await addCloth({
 				name,
 				type,
-				category: typeToCategory[type],
+				category: clothingTypes.find((ct) => ct.type === type)?.category ?? "",
 				colour,
 				image_url: publicUrl,
 			});
@@ -190,9 +168,9 @@ export default function AddClothForm({
 			<div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-lg relative">
 				<button
 					onClick={onClose}
-					className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 font-bold text-lg"
+					className="absolute top-4 right-4 font-bold text-lg cursor-pointer"
 				>
-					&times;
+					<X size={24} />
 				</button>
 				<h2 className="text-xl font-semibold mb-4">Add / Update Closet</h2>
 				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -236,9 +214,9 @@ export default function AddClothForm({
 							onChange={(e) => setType(e.target.value)}
 							className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-black"
 						>
-							{Object.keys(typeToCategory).map((t) => (
-								<option key={t} value={t}>
-									{t}
+							{clothingTypes.map((ct) => (
+								<option key={ct.type} value={ct.type}>
+									{ct.type}
 								</option>
 							))}
 						</select>

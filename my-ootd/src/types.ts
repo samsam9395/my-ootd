@@ -22,3 +22,10 @@ export type ClothItem = {
     category: string;
     styles: ClothStyle[];
 };
+
+export type UpdateClothPayload = {
+    name?: string;
+    type?: string;
+    colour?: string;
+    styles?: { id: string; name: string }[];
+}
