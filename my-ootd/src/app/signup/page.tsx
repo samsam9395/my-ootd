@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import logo from "@/public/my-ootd-logo.png";
 import { useAlert } from "@/contexts/AlertContext";
 import { useAuth } from "@/contexts/AuthContext";
-
-const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
+import { signup, SignupPayload } from "@/utils/api/auth";
 
 export default function SignupPage() {
 	const router = useRouter();
@@ -42,28 +41,16 @@ export default function SignupPage() {
 		} else {
 			setPwdNotMeetRec(false);
 		}
-		console.log("url:", `${backendUrl}/auth/signup`);
+
 		try {
-			const res = await fetch(`${backendUrl}/auth/signup`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, username, password }),
-				credentials: "include", // important to save cookies
-			});
-			const data = await res.json();
-			if (res.ok) {
-				showAlert("Signup successful! Please sign in.", "success");
-				setAccessToken(data.access_token);
-				setUser(data.user);
-				console.log("user signed up", data.user);
-				router.push("/signin"); // after signup → go to signin
-			} else {
-				const data = await res.json();
-				setError(data.error || "Signup failed");
-			}
-		} catch (err) {
+			const data = await signup({ email, username, password } as SignupPayload);
+			showAlert("Signup successful! Please sign in.", "success");
+			setAccessToken(data.access_token);
+			setUser(data.user);
+			router.push("/login");
+		} catch (err: any) {
 			console.error(err);
-			setError("Something went wrong. Try again.");
+			setError(err.message || "Something went wrong. Try again.");
 		}
 	};
 
@@ -166,7 +153,7 @@ export default function SignupPage() {
 				<p className="mt-10 text-center text-sm text-gray-500">
 					Already have an account?{" "}
 					<a
-						href="/signin"
+						href="/login"
 						className="font-semibold text-slate-400 hover:text-blue-400"
 					>
 						Sign in

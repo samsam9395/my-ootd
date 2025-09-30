@@ -3,7 +3,11 @@ import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { supabase } from "@/utils/supabase/client";
 import FullPageLoader from "@/components/common/fullPageLoader";
 import { useAlert } from "@/contexts/AlertContext";
-import { addCloth, addClothStylesRelation, addStyleTags } from "@/utils/api";
+import {
+	addCloth,
+	addClothStylesRelation,
+	addStyleTags,
+} from "@/utils/api/clothes";
 import { StyleTag } from "@/types";
 import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";

@@ -6,7 +6,8 @@ import RandomCloset from "./RandomCloset";
 import Gallery from "./Gallery";
 import AddClothForm from "./AddClothForm";
 import { StyleTag } from "@/types";
-import { getStyleTags } from "@/utils/api";
+import { getStyleTags } from "@/utils/api/clothes";
+import { useAuth } from "@/contexts/AuthContext";
 
 const categories = [
 	"all",
@@ -23,7 +24,7 @@ const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
 export default function ClosetPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
-
+	const { accessToken } = useAuth();
 	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [dbTagStyles, setDbTagStyles] = useState<StyleTag[]>([]);
@@ -33,20 +34,21 @@ export default function ClosetPage() {
 	function handleCategoryChange(category: string) {
 		router.push(`/closet?category=${category}`);
 	}
-
+	console.log("accessToken in closet page", accessToken);
 	useEffect(() => {
 		const categoryFromURL = searchParams.get("category") || "all";
 		setSelectedCategory(categoryFromURL);
 	}, [searchParams]);
 
 	useEffect(() => {
+		if (!accessToken) return; // wait for token
 		async function getDBStyles() {
 			const styles = await getStyleTags();
 			setDbTagStyles(styles);
 		}
 
 		getDBStyles();
-	}, []);
+	}, [accessToken]);
 
 	useEffect(() => {
 		async function fetchRandomItems() {

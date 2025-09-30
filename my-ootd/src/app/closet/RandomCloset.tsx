@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { ClothItem, ClothRecommendationSet } from "@/types";
-import { fetchRecommendations } from "@/utils/api";
+import { fetchRecommendations } from "@/utils/api/clothes";
 import Loader from "@/components/common/loader";
 import { motion } from "framer-motion";
 

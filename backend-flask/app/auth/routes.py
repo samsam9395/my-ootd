@@ -100,24 +100,32 @@ def signup():
     }
 
     resp = make_response(jsonify({"access_token": access_token, "user": user_response}))
-    resp.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax")
+    resp.set_cookie(
+    "refresh_token",
+    refresh_token,
+    path="/",
+    httponly=True,
+    samesite="None",
+    secure=True, # always True in production (HTTPS)
+    max_age=7*24*60*60  # 7 days in seconds, matches your JWT expiry
+)
     return resp, 201
+
 # ---------------- Login ----------------
 @auth_bp.route("/login", methods=["POST"])
 def login():
     supabase = get_supabase()
     data = request.json
     email = data.get("email")
-    username = data.get("username")
     password = data.get("password")
 
     res = supabase.table("users").select("*").eq("email", email).execute()
     if not res.data:
-        return jsonify({"error":"Invalid credentials"}), 401
+        return jsonify({"error": "Invalid credentials"}), 401
 
     user = res.data[0]
-    if not bcrypt.verify(password, user["password_hash"]):
-        return jsonify({"error":"Invalid credentials"}), 401
+    if not bcrypt.checkpw(password.encode("utf-8"), user["password_hash"].encode("utf-8")):
+        return jsonify({"error": "Invalid credentials"}), 401
 
     user_id = user["id"]
 
@@ -138,13 +146,27 @@ def login():
         "user_id": user_id,
         "jti": refresh_jti,
         "revoked": False,
-        "expires_at": nowUTC + datetime.timedelta(days=7)
+        "expires_at": (nowUTC + datetime.timedelta(days=7)).isoformat()
     }).execute()
 
-    resp = make_response(jsonify({"access_token": access_token, "user": user}))
-    resp.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax")
-    return resp
+    # Don't return password_hash
+    user_response = {
+        "id": user["id"],
+        "email": user["email"],
+        "username": user["username"]
+    }
 
+    resp = make_response(jsonify({"access_token": access_token, "user": user_response}))
+    resp.set_cookie(
+    "refresh_token",
+    refresh_token,
+    path="/",
+    httponly=True,
+    samesite="None",
+    secure=True, # always True in production (HTTPS)
+    max_age=7*24*60*60  # 7 days in seconds, matches your JWT expiry
+)
+    return resp, 200
 # ---------------- Refresh ----------------
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh():
@@ -166,13 +188,25 @@ def refresh():
     if not rt.data or rt.data[0]["revoked"]:
         return jsonify({"error":"Token revoked"}), 401
 
+    # Fetch user info
+    res = supabase.table("users").select("*").eq("id", user_id).execute()
+    if not res.data:
+        return jsonify({"error":"User not found"}), 404
+    
+    user = res.data[0]
+    user_response = {
+        "id": user["id"],
+        "email": user["email"],
+        "username": user["username"]
+    }
+    
     # Issue new access token
     access_token = jwt.encode({
         "sub": user_id,
         "exp": nowUTC + datetime.timedelta(minutes=15)
     }, SECRET_KEY, algorithm="HS256")
 
-    return jsonify({"access_token": access_token})
+    return jsonify({"access_token": access_token, "user": user_response})
 
 # ---------------- Logout ----------------
 @auth_bp.route("/logout", methods=["POST"])
@@ -185,8 +219,18 @@ def logout():
             jti = payload["jti"]
             # revoke token
             supabase.table("refresh_tokens").update({"revoked": True}).eq("jti", jti).execute()
+        except jwt.ExpiredSignatureError:
+            pass  # Token already expired, no need to revoke
         except:
-            pass
+            pass  # Invalid token, ignore
+    
+    # Delete cookie in browser
     resp = make_response(jsonify({"message":"Logged out"}))
-    resp.delete_cookie("refresh_token")
+    resp.delete_cookie(
+    "refresh_token",
+    httponly=True,
+    samesite="None",
+    secure=True,
+    path="/"
+)
     return resp

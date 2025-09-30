@@ -1,6 +1,7 @@
 import { ClothItem, ClothRecommendationSet, UpdateClothPayload } from "@/types";
+import { apiClient, backendUrl } from "@utils/api/apiClient";
 
-const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
+
 
 export const handleApiResponse = async (res: Response, stepName: string) => {
     if (!res.ok) {
@@ -22,8 +23,7 @@ export const getPageClothesByType = async (
 }
 
 export const getStyleTags = async () => {
-    const res = await fetch(`${backendUrl}/style-tags`);
-    return handleApiResponse(res, "Fetching style tags");
+    return apiClient.get("/style-tags"); // automatically sends bearer token if set
 }
 
 export const addStyleTags = async (names: string[]) => {

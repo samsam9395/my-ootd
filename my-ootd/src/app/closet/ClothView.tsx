@@ -7,7 +7,7 @@ import {
 	StyleTag,
 	UpdateClothPayload,
 } from "@/types";
-import { fetchRecommendations } from "@/utils/api";
+import { fetchRecommendations } from "@/utils/api/clothes";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Ellipsis } from "lucide-react";
 import { useState } from "react";

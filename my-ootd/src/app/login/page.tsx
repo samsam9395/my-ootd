@@ -3,16 +3,32 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import logo from "@/public/my-ootd-logo.png";
+import { useAuth } from "@/contexts/AuthContext";
+import { Eye, EyeClosed } from "lucide-react";
+import { login, LoginPayload } from "@/utils/api/auth";
 
-function SigninPage() {
+function LoginPage() {
 	const router = useRouter();
+	const { setUser, setAccessToken } = useAuth();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-	const handleLogin = (e: React.FormEvent) => {
+	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		router.push("/closet");
+		setError(null);
+
+		try {
+			const data = await login({ email, password } as LoginPayload);
+			setAccessToken(data.access_token);
+			setUser(data.user);
+			router.push("/closet");
+		} catch (err: any) {
+			console.error("Login error:", err);
+			setError(err.message);
+		}
 	};
 
 	return (
@@ -73,17 +89,28 @@ function SigninPage() {
 								</a>
 							</div>
 						</div>
-						<div className="mt-2">
+						<div className="mt-2 flex items-center">
 							<input
 								id="password"
 								name="password"
-								type="password"
+								type={showPassword ? "text" : "password"}
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								required
 								autoComplete="current-password"
 								className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
 							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword((prev) => !prev)}
+								style={{
+									marginLeft: "8px",
+									fontSize: "0.9rem",
+									cursor: "pointer",
+								}}
+							>
+								{showPassword ? <EyeClosed /> : <Eye />}
+							</button>
 						</div>
 					</div>
 
@@ -92,9 +119,10 @@ function SigninPage() {
 							type="submit"
 							className="flex w-full justify-center rounded-md bg-slate-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dark-gray  cursor-pointer"
 						>
-							Sign in
+							Log in
 						</button>
 					</div>
+					{error && <p style={{ color: "red" }}>{error}</p>}
 				</form>
 
 				<p className="mt-10 text-center text-sm/6 text-gray-500">
@@ -111,4 +139,4 @@ function SigninPage() {
 	);
 }
 
-export default SigninPage;
+export default LoginPage;

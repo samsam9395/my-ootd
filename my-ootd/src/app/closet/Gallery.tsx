@@ -3,7 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
 import { ClothRecommendationSet, StyleTag, UpdateClothPayload } from "@/types";
-import { fetchMoreData, getPageClothesByType, updateCloth } from "@/utils/api";
+import {
+	fetchMoreData,
+	getPageClothesByType,
+	updateCloth,
+} from "@/utils/api/clothes";
 import { useAlert } from "@/contexts/AlertContext";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
