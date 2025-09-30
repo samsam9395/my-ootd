@@ -28,6 +28,24 @@ class ApiClient {
         return res.json();
     }
 
+    async put(path: string, body: any) {
+        const res = await fetch(`${backendUrl}${path}`, {
+            method: "PUT",
+            headers: this.getHeaders(),
+            body: JSON.stringify(body),
+            credentials: "include",
+        });
+        return res.json();
+    }
+    async delete(path: string) {
+        const res = await fetch(`${backendUrl}${path}`, {
+            method: "DELETE",
+            headers: this.getHeaders(),
+            credentials: "include",
+        });
+        return res.json();
+    }
+
     private getHeaders(): Record<string, string> {
         const headers: Record<string, string> = {
             "Content-Type": "application/json",

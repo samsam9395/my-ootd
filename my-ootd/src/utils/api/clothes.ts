@@ -23,17 +23,20 @@ export const getPageClothesByType = async (
 }
 
 export const getStyleTags = async () => {
-    return apiClient.get("/style-tags"); // automatically sends bearer token if set
+    return apiClient.get("/clothes/style-tags"); // automatically sends bearer token if set
 }
 
 export const addStyleTags = async (names: string[]) => {
-    const res = await fetch(`${backendUrl}/style-tags`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ names }),
-    });
+    // const res = await fetch(`${backendUrl}/style-tags`, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ names }),
+    // });
+    // return handleApiResponse(res, "Saving style tags");
+    const res = await apiClient.post("/clothes/style-tags", { names });
     return handleApiResponse(res, "Saving style tags");
 };
+
 
 export const addCloth = async (payload: {
     name: string;
@@ -44,22 +47,26 @@ export const addCloth = async (payload: {
 }) => {
 
     console.log('payload for adding cloth', payload);
-    const res = await fetch(`${backendUrl}/clothes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-    });
+    // const res = await fetch(`${backendUrl}/clothes`, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify(payload),
+    // });
+    // return handleApiResponse(res, "Saving cloth");
+    const res = await apiClient.post("/clothes", payload);
     return handleApiResponse(res, "Saving cloth");
 };
 
 export const addClothStylesRelation = async (
     clothStylesPayload: { cloth_id: number; style_id: number }[]
 ) => {
-    const res = await fetch(`${backendUrl}/cloth_styles`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(clothStylesPayload),
-    });
+    // const res = await fetch(`${backendUrl}/cloth_styles`, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify(clothStylesPayload),
+    // });
+    // return handleApiResponse(res, "Saving cloth styles");
+    const res = await apiClient.post("/clothes/cloth_styles", clothStylesPayload);
     return handleApiResponse(res, "Saving cloth styles");
 };
 
@@ -112,21 +119,25 @@ export const fetchMoreData = async (selectedCategory: string, page: number) => {
 };
 
 export const updateCloth = async (updatePayload: { clothId: number; payload: UpdateClothPayload }) => {
-    const clothId = updatePayload.clothId;
-    const payload = updatePayload.payload;
-    console.log('calling url:', `${backendUrl}/clothes/${clothId}`);
+    // const clothId = updatePayload.clothId;
+    // const payload = updatePayload.payload;
+    // console.log('calling url:', `${backendUrl}/clothes/${clothId}`);
 
-    const res = await fetch(`${backendUrl}/clothes/${clothId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-    });
+    // const res = await fetch(`${backendUrl}/clothes/${clothId}`, {
+    //     method: "PUT",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify(payload),
+    // });
+    // return handleApiResponse(res, "Updating cloth");
+    const res = await apiClient.put(`/clothes/${updatePayload.clothId}`, updatePayload.payload);
     return handleApiResponse(res, "Updating cloth");
 }
 
 export const deleteCloth = async (clothId: number) => {
-    const res = await fetch(`${backendUrl}/delete_cloth/${clothId}`, {
-        method: "DELETE",
-    });
+    // const res = await fetch(`${backendUrl}/delete_cloth/${clothId}`, {
+    //     method: "DELETE",
+    // });
+    // return handleApiResponse(res, "Deleting cloth");
+    const res = await apiClient.delete(`/clothes/${clothId}`);
     return handleApiResponse(res, "Deleting cloth");
 }

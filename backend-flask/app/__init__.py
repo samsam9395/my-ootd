@@ -2,6 +2,9 @@ from flask import Flask, app
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+from .auth import auth_bp
+from .cloth import bp as cloth_bp
+from .recommendation import bp as rec_bp
 
 def create_app():
     # Load .env only in development
@@ -17,13 +20,10 @@ def create_app():
 
    
 
-    # Register routes
-    from .routes import bp as routes_bp
-    app.register_blueprint(routes_bp)
-    
-    # Register auth blueprint
-    from .auth import auth_bp
-    app.register_blueprint(auth_bp)
+    # Register blueprints
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(cloth_bp, url_prefix="/api/clothes")
+    app.register_blueprint(rec_bp, url_prefix="/api/recommendations")
 
     # Allow all routes from localhost:3000 (dev only)
     CORS(app, origins=["http://localhost:3000"], supports_credentials=True,  methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
