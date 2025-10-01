@@ -2,6 +2,7 @@
 
 export const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
 
+
 class ApiClient {
     private token: string | null = null;
 
@@ -15,6 +16,7 @@ class ApiClient {
             headers: this.getHeaders(),
             credentials: "include",
         });
+
         return res.json();
     }
 
@@ -25,6 +27,7 @@ class ApiClient {
             body: JSON.stringify(body),
             credentials: "include",
         });
+
         return res.json();
     }
 
@@ -35,6 +38,7 @@ class ApiClient {
             body: JSON.stringify(body),
             credentials: "include",
         });
+
         return res.json();
     }
     async delete(path: string) {
@@ -43,6 +47,7 @@ class ApiClient {
             headers: this.getHeaders(),
             credentials: "include",
         });
+
         return res.json();
     }
 

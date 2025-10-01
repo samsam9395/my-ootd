@@ -32,6 +32,7 @@ export default function ClosetPage() {
 	const [randomItemsArr, setRandomItemsArr] = useState([]);
 
 	function handleCategoryChange(category: string) {
+		if (category === selectedCategory) return; // no change
 		router.push(`/closet?category=${category}`);
 	}
 	console.log("accessToken in closet page", accessToken);

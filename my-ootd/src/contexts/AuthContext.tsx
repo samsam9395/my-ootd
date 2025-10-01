@@ -38,32 +38,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const pathname = usePathname();
 
 	console.log("pathname:", pathname);
+	console.log("hasCheckedRefresh:", hasCheckedRefresh);
 	useEffect(() => {
 		if (hasCheckedRefresh) return;
+
+		let cancelled = false; // avoid state updates if unmounted
+
 		async function rehydrate() {
 			const hasCookie = document.cookie.includes("refresh_token");
-			if (!hasCookie) {
+			console.log("hasCookie:", hasCookie);
+			if (!hasCookie && accessToken) {
 				setHasCheckedRefresh(true);
 				return; // don't call refresh API
 			}
 
 			try {
 				const data = await refreshAccessToken();
-				setAccessToken(data.access_token);
-				setUser(data.user);
+				if (!cancelled) {
+					setAccessToken(data.access_token);
+					setUser(data.user);
+				}
 			} catch (err) {
 				console.error("Refresh failed", err);
-				setAccessToken(null);
-				setUser(null);
-				if (!["/login", "/signup"].includes(pathname)) {
-					router.push("/login");
+				if (!cancelled) {
+					setAccessToken(null);
+					setUser(null);
+					if (!["/login", "/signup"].includes(pathname)) {
+						router.push("/login");
+					}
 				}
 			} finally {
-				setHasCheckedRefresh(true);
+				if (!cancelled) setHasCheckedRefresh(true);
 			}
 		}
 
 		rehydrate();
+
+		return () => {
+			cancelled = true;
+		};
 	}, [pathname, hasCheckedRefresh, router]);
 	if (!hasCheckedRefresh) return null; // or show a loading spinner
 	return (

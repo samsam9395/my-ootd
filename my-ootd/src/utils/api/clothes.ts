@@ -3,23 +3,13 @@ import { apiClient, backendUrl } from "@utils/api/apiClient";
 
 
 
-export const handleApiResponse = async (res: Response, stepName: string) => {
-    if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(`${stepName} failed: ${msg}`);
-    }
-    return res.json();
-};
+
 
 export const getPageClothesByType = async (
     selectedCategory: string,
     limit: number,
     offset: number
 ) => {
-    // const res = await fetch(
-    //     `/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
-    // );
-    // return handleApiResponse(res, "Fetching clothes");
     const res = await apiClient.get(`/clothes?type=${selectedCategory}&limit=${limit}&offset=${offset}`);
     return res;
 }
@@ -35,8 +25,8 @@ export const addStyleTags = async (names: string[]) => {
     //     body: JSON.stringify({ names }),
     // });
     // return handleApiResponse(res, "Saving style tags");
-    const res = await apiClient.post("/clothes/style-tags", { names });
-    return handleApiResponse(res, "Saving style tags");
+    const data = await apiClient.post("/clothes/style-tags", { names });
+    return data;
 };
 
 
@@ -55,8 +45,8 @@ export const addCloth = async (payload: {
     //     body: JSON.stringify(payload),
     // });
     // return handleApiResponse(res, "Saving cloth");
-    const res = await apiClient.post("/clothes", payload);
-    return handleApiResponse(res, "Saving cloth");
+    const data = await apiClient.post("/clothes", payload);
+    return data;
 };
 
 export const addClothStylesRelation = async (
@@ -68,8 +58,9 @@ export const addClothStylesRelation = async (
     //     body: JSON.stringify(clothStylesPayload),
     // });
     // return handleApiResponse(res, "Saving cloth styles");
-    const res = await apiClient.post("/clothes/cloth_styles", clothStylesPayload);
-    return handleApiResponse(res, "Saving cloth styles");
+    console.log("clothStylesPayload:", clothStylesPayload);
+    const data = await apiClient.post("/clothes/cloth_styles", clothStylesPayload);
+    return data;
 };
 
 function normalizeRecommendations(recs: any): ClothRecommendationSet | null {
@@ -107,33 +98,10 @@ export async function fetchRecommendations(itemId: number) {
     return normalizeRecommendations(data);
 }
 
-// export const fetchMoreData = async (selectedCategory: string, page: number) => {
-
-//     const limit = 3;
-//     const offset = page * limit;
-
-//     const res = await fetch(
-//         `/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
-//     );
-//     const data = await res.json();
-
-//     return data;
-//     const data = await apiClient.get()
-// };
 
 export const updateCloth = async (updatePayload: { clothId: number; payload: UpdateClothPayload }) => {
-    // const clothId = updatePayload.clothId;
-    // const payload = updatePayload.payload;
-    // console.log('calling url:', `${backendUrl}/clothes/${clothId}`);
-
-    // const res = await fetch(`${backendUrl}/clothes/${clothId}`, {
-    //     method: "PUT",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify(payload),
-    // });
-    // return handleApiResponse(res, "Updating cloth");
-    const res = await apiClient.put(`/clothes/${updatePayload.clothId}`, updatePayload.payload);
-    return handleApiResponse(res, "Updating cloth");
+    const data = await apiClient.put(`/clothes/${updatePayload.clothId}`, updatePayload.payload);
+    return data;
 }
 
 export const deleteCloth = async (clothId: number) => {
@@ -141,6 +109,6 @@ export const deleteCloth = async (clothId: number) => {
     //     method: "DELETE",
     // });
     // return handleApiResponse(res, "Deleting cloth");
-    const res = await apiClient.delete(`/clothes/${clothId}`);
-    return handleApiResponse(res, "Deleting cloth");
+    const data = await apiClient.delete(`/clothes/${clothId}`);
+    return data;
 }

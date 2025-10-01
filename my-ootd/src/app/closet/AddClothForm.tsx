@@ -151,14 +151,14 @@ export default function AddClothForm({
 			}));
 
 			// 4. Send junction table data
-
-			await addClothStylesRelation(clothStylesPayload);
+			const relationRes = await addClothStylesRelation(clothStylesPayload);
+			console.log("relationRes", relationRes);
 
 			showAlert("Cloth added successfully!", "success");
-			onClose();
 		} catch (error) {
 			showAlert("Network error. Try again later.", "error");
 		} finally {
+			onClose();
 			setLoading(false);
 			console.log("should stop loading");
 		}
