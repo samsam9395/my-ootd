@@ -13,7 +13,33 @@ def get_supabase():
         )
     return _supabase
 
+# Fetch cloth by type and pagination
+def get_clothes_by_type(category: str | None, limit: int, offset: int):
+    supabase = get_supabase()
+    query = supabase.table("clothes").select("""
+        id, name, type, colour, category, image_url,
+        clothes_styles!inner(
+            styles!inner(id, name)
+        )
+    """).range(offset, offset + limit - 1)
+    print('query in DB:', query)
+    if category:  # only filter if category is specified
+        query = query.eq("category", category)
 
+    data = query.execute()
+    result = [
+        {
+            "id": row["id"],
+            "name": row["name"],
+            "type": row["type"],
+            "colour": row["colour"],
+            "category": row["category"],
+            "styles": [cs["styles"]["name"] for cs in row.get("clothes_styles", []) if cs.get("styles")],
+            "image_url": row["image_url"]
+        }
+        for row in data.data
+    ]
+    return result
 
 # Fetch all items
 def get_all_items():

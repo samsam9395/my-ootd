@@ -16,10 +16,12 @@ export const getPageClothesByType = async (
     limit: number,
     offset: number
 ) => {
-    const res = await fetch(
-        `/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
-    );
-    return handleApiResponse(res, "Fetching clothes");
+    // const res = await fetch(
+    //     `/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
+    // );
+    // return handleApiResponse(res, "Fetching clothes");
+    const res = await apiClient.get(`/clothes?type=${selectedCategory}&limit=${limit}&offset=${offset}`);
+    return res;
 }
 
 export const getStyleTags = async () => {
@@ -105,18 +107,19 @@ export async function fetchRecommendations(itemId: number) {
     return normalizeRecommendations(data);
 }
 
-export const fetchMoreData = async (selectedCategory: string, page: number) => {
+// export const fetchMoreData = async (selectedCategory: string, page: number) => {
 
-    const limit = 3;
-    const offset = page * limit;
+//     const limit = 3;
+//     const offset = page * limit;
 
-    const res = await fetch(
-        `/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
-    );
-    const data = await res.json();
+//     const res = await fetch(
+//         `/api/wardrobe?type=${selectedCategory}&limit=${limit}&offset=${offset}`
+//     );
+//     const data = await res.json();
 
-    return data;
-};
+//     return data;
+//     const data = await apiClient.get()
+// };
 
 export const updateCloth = async (updatePayload: { clothId: number; payload: UpdateClothPayload }) => {
     // const clothId = updatePayload.clothId;

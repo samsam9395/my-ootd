@@ -3,14 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
 import { ClothRecommendationSet, StyleTag, UpdateClothPayload } from "@/types";
-import {
-	fetchMoreData,
-	getPageClothesByType,
-	updateCloth,
-} from "@/utils/api/clothes";
+import { getPageClothesByType, updateCloth } from "@/utils/api/clothes";
 import { useAlert } from "@/contexts/AlertContext";
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const ITEM_LIMIT = 3;
 
 export const clothingTypes = [
 	{ type: "top", category: "top" },
@@ -41,7 +37,7 @@ export default function Gallery({
 	const [selectedClothIndex, setSelectedClothIndex] = useState<number | null>(
 		null
 	);
-	const [refreshKey, setRefreshKey] = useState(0);
+
 	useEffect(() => {
 		let cancelled = false;
 
@@ -51,10 +47,13 @@ export default function Gallery({
 			setPage(0);
 			setHasMore(true);
 
-			const limit = 3;
-			const offset = 0;
+			const offset = 0; //always start fresh
 
-			const data = await getPageClothesByType(selectedCategory, limit, offset);
+			const data = await getPageClothesByType(
+				selectedCategory,
+				ITEM_LIMIT,
+				offset
+			);
 
 			if (!cancelled) {
 				setFetchItems(data);
@@ -68,7 +67,7 @@ export default function Gallery({
 		return () => {
 			cancelled = true;
 		};
-	}, [selectedCategory, refreshKey]);
+	}, [selectedCategory]);
 
 	useEffect(() => {
 		if (page === 0 || !hasMore) return; // skip initial page fetch; handled above
@@ -76,7 +75,19 @@ export default function Gallery({
 		const callFetchMoreData = async () => {
 			setIsLoading(true);
 
-			const data = await fetchMoreData(selectedCategory, page);
+			// const data = await fetchMoreData(selectedCategory, page);
+
+			// if (!data || data.length === 0) {
+			// 	setHasMore(false);
+			// } else {
+			// 	setFetchItems((prev) => [...prev, ...data]);
+			// }
+			const offset = page * ITEM_LIMIT; // calculate offset
+			const data = await getPageClothesByType(
+				selectedCategory,
+				ITEM_LIMIT,
+				offset
+			);
 
 			if (!data || data.length === 0) {
 				setHasMore(false);

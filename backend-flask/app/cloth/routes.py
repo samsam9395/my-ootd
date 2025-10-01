@@ -13,12 +13,26 @@ from .db_service import (
     insert_cloth_style_relation,
     get_random_items,
     update_cloth_in_db,
-    delete_cloth_in_db
+    delete_cloth_in_db,
+    get_clothes_by_type
 )     
 
+# Get cloth by type
+@bp.route("", methods=["GET"])
+def get_wardrobe():
+    category = request.args.get("type", "all").lower()
+    limit = int(request.args.get("limit", 3))
+    offset = int(request.args.get("offset", 0))
+    print(f"Fetching clothes of type: {category}, limit: {limit}, offset: {offset}")
+    if category == "" or category == "all":
+        clothes = get_clothes_by_type(None, limit, offset)  # no filter
+    else:
+        clothes = get_clothes_by_type(category, limit, offset)
+    print("Fetched clothes:", clothes)
+    return jsonify(clothes)
 
 #Create new cloth item
-@bp.route("/", methods=["POST"])
+@bp.route("", methods=["POST"])
 def add_cloth():
     """
     Expecting JSON body:
