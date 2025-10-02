@@ -2,6 +2,8 @@
 from flask import Blueprint, request, jsonify, current_app
 import os
 
+from app.auth.auth_utils import token_required
+
 # define the blueprint
 bp = Blueprint("clothes", __name__)
 
@@ -19,6 +21,7 @@ from .db_service import (
 
 # Get cloth by type
 @bp.route("", methods=["GET"])
+@token_required
 def get_wardrobe():
     category = request.args.get("type", "all").lower()
     limit = int(request.args.get("limit", 3))
@@ -33,6 +36,7 @@ def get_wardrobe():
 
 #Create new cloth item
 @bp.route("", methods=["POST"])
+@token_required
 def add_cloth():
     """
     Expecting JSON body:
@@ -64,6 +68,7 @@ def add_cloth():
 
 # Update existing cloth itemupdate_cloth
 @bp.route("/<int:id>", methods=["PUT"])
+@token_required
 def update_cloth(id):
     data = request.json
     try:
@@ -77,8 +82,10 @@ def update_cloth(id):
 
 # Get random clothes for Shuffle
 @bp.route("/random", methods=["GET"])
+@token_required
 def get_random_clothes():
     try:
+        print('Going to run get_random_items() Flask')
         items = get_random_items()
         return jsonify(items)
     except Exception as e:
@@ -87,12 +94,14 @@ def get_random_clothes():
     
 # Fetch style tags
 @bp.route("/style-tags", methods=["GET"])
+@token_required
 def get_style_tags():
     tags = fetch_style_tags()
     return jsonify(tags)
 
 # Add new style tags
 @bp.route("/style-tags", methods=["POST"])
+@token_required
 def add_style_tags():
     data = request.json
     """
@@ -110,6 +119,7 @@ def add_style_tags():
 
 # Add styles to a cloth item
 @bp.route("/cloth_styles", methods=["POST"])
+@token_required
 def add_cloth_styles():
     """
     Expecting JSON body:
@@ -131,6 +141,7 @@ def add_cloth_styles():
 
 #Delete cloth item
 @bp.route("/<int:id>", methods=["DELETE"])
+@token_required
 def delete_cloth(id):
     if not id:
         return jsonify({"message": "Cloth ID is required"}), 400

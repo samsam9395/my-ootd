@@ -1,28 +1,43 @@
+import traceback
 from functools import wraps
-from flask import request, jsonify
+from flask import request, jsonify, g
 import jwt
 import os
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "devkey")
+SECRET_KEY = os.getenv("SECRET_KEY_BACKEND", "dev-secret")
 
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        print("==== token_required start ====")
+        print('request.headers:', request.headers)
         token = None
         if 'Authorization' in request.headers:
-            auth_header = request.headers['Authorization']
-            token = auth_header.split(" ")[1] if len(auth_header.split(" ")) > 1 else None
+            parts = request.headers['Authorization'].split(" ")
+            print('Authorization header parts:', parts)
+            if len(parts) == 2:
+                token = parts[1]
 
         if not token:
             return jsonify({"message": "Token is missing"}), 401
-
+        
+        # Decode token
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            user_id = payload["sub"]
+            g.user_id = payload.get("sub")  # save into request context
+            print(f"Decoded payload: {payload}")
         except jwt.ExpiredSignatureError:
+            print("JWT expired!")
             return jsonify({"message": "Token expired"}), 401
-        except:
+        except jwt.InvalidTokenError as e:
+            print(f"JWT decode failed: {str(e)}")
+            traceback.print_exc()
+            return jsonify({"message": "Invalid token"}), 401
+        except Exception:
             return jsonify({"message": "Invalid token"}), 401
 
-        return f(user_id=user_id, *args, **kwargs)
+        print("==== token_required end ====")
+        return f(*args, **kwargs)
+        # return f(user_id=user_id, *args, **kwargs)
+
     return decorated

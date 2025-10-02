@@ -9,6 +9,9 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { refreshAccessToken } from "@/utils/api/auth";
+import { apiClient } from "@/utils/api/apiClient";
+import { useAlert } from "./AlertContext";
+import FullPageLoader from "@/components/common/fullPageLoader";
 
 type AuthContextType = {
 	user: { id: string; email: string; username: string } | null;
@@ -36,30 +39,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [hasCheckedRefresh, setHasCheckedRefresh] = useState(false);
 	const router = useRouter();
 	const pathname = usePathname();
+	const { showAlert } = useAlert();
 
-	console.log("pathname:", pathname);
-	console.log("hasCheckedRefresh:", hasCheckedRefresh);
 	useEffect(() => {
-		if (hasCheckedRefresh) return;
+		// Set the global 401 handler once
+		apiClient.setOnUnauthorized(() => {
+			showAlert("Session expired. Please log in again.");
+			router.push("/login");
+		});
 
-		let cancelled = false; // avoid state updates if unmounted
+		return () => {
+			// Clean up on unmount
+			apiClient.setOnUnauthorized(() => {});
+		};
+	}, [router]);
+
+	// Sync token with apiClient whenever it changes
+	useEffect(() => {
+		console.log("apiClient token set:", accessToken);
+		apiClient.setToken(accessToken);
+	}, [accessToken]);
+	console.log("hasCheckedRefresh:", hasCheckedRefresh);
+
+	useEffect(() => {
+		let cancelled = false;
 
 		async function rehydrate() {
-			const hasCookie = document.cookie.includes("refresh_token");
-			console.log("hasCookie:", hasCookie);
-			if (!hasCookie && accessToken) {
-				setHasCheckedRefresh(true);
-				return; // don't call refresh API
-			}
-
 			try {
-				const data = await refreshAccessToken();
+				const data = await refreshAccessToken(); // backend will return 401 if no cookie
 				if (!cancelled) {
 					setAccessToken(data.access_token);
 					setUser(data.user);
 				}
-			} catch (err) {
-				console.error("Refresh failed", err);
+			} catch (err: any) {
+				console.log("No refresh token / refresh failed", err);
 				if (!cancelled) {
 					setAccessToken(null);
 					setUser(null);
@@ -73,17 +86,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 
 		rehydrate();
-
 		return () => {
 			cancelled = true;
 		};
-	}, [pathname, hasCheckedRefresh, router]);
-	if (!hasCheckedRefresh) return null; // or show a loading spinner
+	}, [pathname, router]);
+
+	// if (!hasCheckedRefresh) return null; // or show a loading spinner
 	return (
 		<AuthContext.Provider
 			value={{ user, setUser, accessToken, setAccessToken }}
 		>
-			{children}
+			{!hasCheckedRefresh && <FullPageLoader />} {children}
 		</AuthContext.Provider>
 	);
 };

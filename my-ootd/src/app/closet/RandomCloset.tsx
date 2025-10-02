@@ -90,7 +90,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 					<ChevronRight size={18} />
 				</button>
 				{/* RandomCloset images */}
-				{randomItemsArr.map((item, i) => {
+				{randomItemsArr?.map((item, i) => {
 					let diff = i - currentIndex;
 					if (diff < -Math.floor(total / 2)) diff += total;
 					if (diff > Math.floor(total / 2)) diff -= total;

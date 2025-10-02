@@ -19,16 +19,14 @@ export const getStyleTags = async () => {
 }
 
 export const addStyleTags = async (names: string[]) => {
-    // const res = await fetch(`${backendUrl}/style-tags`, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ names }),
-    // });
-    // return handleApiResponse(res, "Saving style tags");
     const data = await apiClient.post("/clothes/style-tags", { names });
     return data;
 };
 
+export const getRandomClothes = async () => {
+    const data = await apiClient.get("/clothes/random");
+    return data
+}
 
 export const addCloth = async (payload: {
     name: string;
@@ -39,12 +37,6 @@ export const addCloth = async (payload: {
 }) => {
 
     console.log('payload for adding cloth', payload);
-    // const res = await fetch(`${backendUrl}/clothes`, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify(payload),
-    // });
-    // return handleApiResponse(res, "Saving cloth");
     const data = await apiClient.post("/clothes", payload);
     return data;
 };
@@ -52,12 +44,6 @@ export const addCloth = async (payload: {
 export const addClothStylesRelation = async (
     clothStylesPayload: { cloth_id: number; style_id: number }[]
 ) => {
-    // const res = await fetch(`${backendUrl}/cloth_styles`, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify(clothStylesPayload),
-    // });
-    // return handleApiResponse(res, "Saving cloth styles");
     console.log("clothStylesPayload:", clothStylesPayload);
     const data = await apiClient.post("/clothes/cloth_styles", clothStylesPayload);
     return data;
@@ -85,16 +71,17 @@ function normalizeRecommendations(recs: any): ClothRecommendationSet | null {
 }
 
 export async function fetchRecommendations(itemId: number) {
-    const res = await fetch(`${backendUrl}/recommendations/ai`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ item_id: itemId }),
-    });
-    if (!res.ok) {
-        console.error("Failed to fetch recommendations");
-        return null;
-    }
-    const data = await res.json();
+    // const res = await fetch(`${backendUrl}/recommendations/ai`, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ item_id: itemId }),
+    // });
+    // if (!res.ok) {
+    //     console.error("Failed to fetch recommendations");
+    //     return null;
+    // }
+    // const data = await res.json();
+    const data = await apiClient.post("/recommendations/ai", { item_id: itemId });
     return normalizeRecommendations(data);
 }
 

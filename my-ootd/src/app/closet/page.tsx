@@ -6,7 +6,7 @@ import RandomCloset from "./RandomCloset";
 import Gallery from "./Gallery";
 import AddClothForm from "./AddClothForm";
 import { StyleTag } from "@/types";
-import { getStyleTags } from "@/utils/api/clothes";
+import { getRandomClothes, getStyleTags } from "@/utils/api/clothes";
 import { useAuth } from "@/contexts/AuthContext";
 
 const categories = [
@@ -35,7 +35,7 @@ export default function ClosetPage() {
 		if (category === selectedCategory) return; // no change
 		router.push(`/closet?category=${category}`);
 	}
-	console.log("accessToken in closet page", accessToken);
+
 	useEffect(() => {
 		const categoryFromURL = searchParams.get("category") || "all";
 		setSelectedCategory(categoryFromURL);
@@ -53,8 +53,7 @@ export default function ClosetPage() {
 
 	useEffect(() => {
 		async function fetchRandomItems() {
-			const res = await fetch(`${backendUrl}/clothes/random`);
-			const data = await res.json();
+			const data = await getRandomClothes();
 			setRandomItemsArr(data);
 		}
 		fetchRandomItems();

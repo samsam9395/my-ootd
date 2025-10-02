@@ -11,25 +11,6 @@ from app.cloth.db_service import get_supabase
 auth_bp = Blueprint("auth", __name__)
 
 SECRET_KEY = os.getenv("SECRET_KEY_BACKEND", "dev-secret")
-nowUTC = datetime.datetime.now(datetime.timezone.utc)
-
-# ---------------- JWT decorator ----------------
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
-            return jsonify({"error":"Missing token"}), 401
-        token = auth_header.split(" ",1)[1]
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error":"Token expired"}), 401
-        except:
-            return jsonify({"error":"Invalid token"}), 401
-        g.user_id = payload["sub"]
-        return f(*args, **kwargs)
-    return decorated
 
 # ---------------- Signup ----------------
 @auth_bp.route("/signup", methods=["POST"])
@@ -39,6 +20,7 @@ def signup():
     username = data.get("username")
     password = data.get("password")
     
+    nowUTC = datetime.datetime.now(datetime.timezone.utc)
     print('request data:', data)
 
     if not email or not username or not password:
@@ -119,7 +101,8 @@ def login():
     data = request.json
     email = data.get("email")
     password = data.get("password")
-
+    nowUTC = datetime.datetime.now(datetime.timezone.utc)
+    
     res = supabase.table("users").select("*").eq("email", email).execute()
     if not res.data:
         return jsonify({"error": "Invalid credentials"}), 401
@@ -142,6 +125,7 @@ def login():
         "exp": nowUTC + datetime.timedelta(days=7)
     }, SECRET_KEY, algorithm="HS256")
 
+    print('refresh_token generated:', refresh_token)
     # Store refresh token
     supabase.table("refresh_tokens").insert({
         "user_id": user_id,
@@ -173,6 +157,8 @@ def login():
 def refresh():
     supabase = get_supabase()
     token = request.cookies.get("refresh_token")
+    nowUTC = datetime.datetime.now(datetime.timezone.utc)
+    
     if not token:
         return jsonify({"error":"Missing refresh token"}), 401
     try:
