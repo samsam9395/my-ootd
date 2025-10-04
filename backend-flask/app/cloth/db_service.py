@@ -116,7 +116,7 @@ def get_random_items():
 
 
 # Add cloth item
-def insert_cloth(name,type_, category, colour, image_url):
+def insert_cloth(name,type_, category, colour):
     supabase = get_supabase()
     # Normalize here
     clean_name = unicodedata.normalize('NFC', name)
@@ -136,7 +136,7 @@ def insert_cloth(name,type_, category, colour, image_url):
                 "type": type_,
                 "category": category,
                 "colour": colour,
-                "image_url": image_url
+                # "image_url": image_url
             }).eq("id", cloth_id).execute()
             return response.data[0]
         else:
@@ -146,7 +146,7 @@ def insert_cloth(name,type_, category, colour, image_url):
                 "type": type_,
                 "category": category,
                 "colour": colour,
-                "image_url": image_url
+                # "image_url": image_url
             }).execute()
             return response.data[0] if response.data else None
     except Exception as e:
@@ -194,6 +194,16 @@ def update_cloth_in_db(cloth_id, cloth_data):
         print("Error in update_cloth_in_db:", e)
         return {"success": False, "error": str(e)}
         
+        
+# Update cloth image URL only 
+def update_cloth_url(cloth_id: int, image_url:str) -> bool:
+    supabase = get_supabase()
+    try:
+        res = supabase.table("clothes").update({"image_url":image_url}).eq("id", cloth_id).execute()
+        return bool(res.data)  # True if at least one row updated
+    except Exception as e:
+        print("Error updating cloth URL:", e)
+        return False
 
 # Delete cloth item
 def delete_cloth_in_db(cloth_id: int) -> bool:

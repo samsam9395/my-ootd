@@ -16,7 +16,8 @@ from .db_service import (
     get_random_items,
     update_cloth_in_db,
     delete_cloth_in_db,
-    get_clothes_by_type
+    get_clothes_by_type,
+    update_cloth_url
 )     
 
 # Get cloth by type
@@ -50,7 +51,7 @@ def add_cloth():
     print('request data:', data)
     # Basic validation
     if not all([data.get("name"), data.get("type"), data.get("category"),
-                data.get("colour"), data.get("image_url")]):
+                data.get("colour")]):
         return jsonify({"message": "Missing required fields"}), 400
 
     cloth = insert_cloth(
@@ -58,7 +59,7 @@ def add_cloth():
     type_=data.get("type", "").strip(),
     category=data.get("category", "").strip(),
     colour=data.get("colour", "").strip(),
-    image_url=data.get("image_url", "").strip()
+    # image_url=data.get("image_url", "").strip()
 )
     if not cloth:
         return jsonify({"message": "Insert failed"}), 500
@@ -66,7 +67,7 @@ def add_cloth():
     return jsonify(cloth), 201
 
 
-# Update existing cloth itemupdate_cloth
+# Update existing cloth 
 @bp.route("/<int:id>", methods=["PUT"])
 @token_required
 def update_cloth(id):
@@ -79,6 +80,22 @@ def update_cloth(id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
+# Update cloth image URL only (for add cloth items)
+@bp.route("/<int:id>/image", methods=["PUT"])
+@token_required
+def update_cloth_image(id):
+    data = request.json
+    image_url = data.get("image_url")
+    if not image_url:
+        return jsonify({"success": False, "message": "image_url is required"}), 400
+    
+    try:
+        result = update_cloth_url(id, image_url)
+        if not result:
+            return jsonify({"success": False, "message": "Failed to update image"}), 500
+        return jsonify({"success": True, "image_url": image_url}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 # Get random clothes for Shuffle
 @bp.route("/random", methods=["GET"])
