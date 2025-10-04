@@ -1,37 +1,13 @@
-# Make sure you're in My-OOTD (global root)
-cd My-OOTD
-
-# Create root .gitignore
-touch .gitignore
-
-# Add Python and Node patterns
-cat > .gitignore << 'EOF'
-# Python
-*.pyc
-__pycache__/
-*.pyo
-*.pyd
-.Python
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-venv/
-env/
-.venv/
-
-# Node
-node_modules/
-.next/
-.env.local
-.env.development.local
-.env.production.local
-
-# IDEs
+# OS & IDE (applies to entire repo)
+.DS_Store
 .vscode/
 .idea/
 *.swp
 *.swo
-.DS_Store
+
+# Environment files (global)
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
 EOF
