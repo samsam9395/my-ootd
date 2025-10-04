@@ -1,15 +1,15 @@
 // utils/apiClient.ts
 export const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
-
+type OnUnauthorizedFn = () => Promise<void>;
 class ApiClient {
     private token: string | null = null;
-    private onUnauthorized: (() => void) | null = null;
+    private onUnauthorized: ((url: string) => Promise<void>) | null = null;
 
     setToken(token: string | null) {
         this.token = token;
     }
 
-    setOnUnauthorized(callback: () => void | null) {
+    setOnUnauthorized(callback: ((url: string) => Promise<void>) | null) {
         this.onUnauthorized = callback;
     }
 
@@ -23,64 +23,63 @@ class ApiClient {
         }
         return headers;
     }
+    // Retry once on 401
+    private async fetchWithRetry(
+        url: string,
+        options: RequestInit = {},
+        retried = false
+    ): Promise<Response> {
+        const headers = { ...(options.headers || {}), ...this.getHeaders() };
+        const res = await fetch(url, { ...options, headers, credentials: "include" });
+
+        if (res.status === 401 && this.onUnauthorized && !retried) {
+            console.warn(`[401] ${url} → triggering refresh`);
+            await this.onUnauthorized(url); // pass URL
+            return this.fetchWithRetry(url, options, true); // retry once
+        }
+        return res;
+    }
 
     private async handleResponse(res: Response, stepName: string) {
         if (!res.ok) {
-            if (res.status === 401 && this.onUnauthorized) {
-                this.onUnauthorized();
-                return Promise.reject(new Error("Unauthorized"));
-            }
             const msg = await res.text();
             throw new Error(`${stepName} failed: ${msg}`);
         }
         return res.json();
     }
 
-    async get(path: string) {
-        console.log(' === header in frontend for path === ', path, this.getHeaders());
-        const res = await fetch(`${backendUrl}${path}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${this.token}`,
-            },
-            credentials: "include",
-        });
 
-        // return res.json();
+    async get(path: string) {
+        const res = await this.fetchWithRetry(`${backendUrl}${path}`, {
+            method: "GET",
+        });
         return this.handleResponse(res, `GET ${path}`);
     }
 
     async post(path: string, body: any) {
-        const res = await fetch(`${backendUrl}${path}`, {
+        const res = await this.fetchWithRetry(`${backendUrl}${path}`, {
             method: "POST",
-            headers: this.getHeaders(),
             body: JSON.stringify(body),
-            credentials: "include",
         });
-
         return this.handleResponse(res, `POST ${path}`);
     }
 
     async put(path: string, body: any) {
-        const res = await fetch(`${backendUrl}${path}`, {
+        const res = await this.fetchWithRetry(`${backendUrl}${path}`, {
             method: "PUT",
-            headers: this.getHeaders(),
             body: JSON.stringify(body),
-            credentials: "include",
         });
-
         return this.handleResponse(res, `PUT ${path}`);
     }
-    async delete(path: string) {
-        const res = await fetch(`${backendUrl}${path}`, {
-            method: "DELETE",
-            headers: this.getHeaders(),
-            credentials: "include",
-        });
 
+    async delete(path: string) {
+        const res = await this.fetchWithRetry(`${backendUrl}${path}`, {
+            method: "DELETE",
+        });
         return this.handleResponse(res, `DELETE ${path}`);
     }
+
+
 
 }
 

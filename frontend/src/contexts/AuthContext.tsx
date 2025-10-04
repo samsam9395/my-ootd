@@ -6,11 +6,12 @@ import {
 	Dispatch,
 	SetStateAction,
 	useEffect,
+	useCallback,
+	useRef,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { refreshAccessToken } from "@/utils/api/auth";
 import { apiClient } from "@/utils/api/apiClient";
-import { useAlert } from "./AlertContext";
 import FullPageLoader from "@/components/common/fullPageLoader";
 
 type AuthContextType = {
@@ -39,59 +40,80 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [hasCheckedRefresh, setHasCheckedRefresh] = useState(false);
 	const router = useRouter();
 	const pathname = usePathname();
-	const { showAlert } = useAlert();
+
+	// Track refresh promise for queuing multiple 401s
+	const refreshPromiseRef = useRef<Promise<void> | null>(null);
+
+	const rehydrate = useCallback(
+		async (triggerUrl?: string) => {
+			if (refreshPromiseRef.current) {
+				console.log(
+					`[QUEUE] Refresh already in progress, ${triggerUrl} waiting...`
+				);
+				return refreshPromiseRef.current;
+			}
+
+			console.log(`[REFRESH] Triggered by: ${triggerUrl}`);
+
+			refreshPromiseRef.current = (async () => {
+				try {
+					const data = await refreshAccessToken();
+					console.log(
+						"[REFRESH] Got new token:",
+						data.access_token.slice(0, 10) + "..."
+					);
+
+					// ✅ Set token IMMEDIATELY on apiClient (synchronous)
+					apiClient.setToken(data.access_token);
+					console.log("[REFRESH] Token set on apiClient");
+
+					// Then update React state (async)
+					setAccessToken(data.access_token);
+					setUser(data.user);
+				} catch (err) {
+					console.error("[REFRESH] Failed!", err);
+					apiClient.setToken(null); // ✅ Clear token immediately too
+					setAccessToken(null);
+					setUser(null);
+					if (!["/login", "/signup"].includes(window.location.pathname)) {
+						router.push("/login");
+					}
+				} finally {
+					console.log("[REFRESH] Done, clearing promise");
+					refreshPromiseRef.current = null;
+					setHasCheckedRefresh(true);
+				}
+			})();
+
+			return refreshPromiseRef.current;
+		},
+		[router]
+	);
+	// Initial hydration on mount
+	useEffect(() => {
+		rehydrate();
+	}, []);
 
 	useEffect(() => {
 		// Set the global 401 handler once
-		apiClient.setOnUnauthorized(() => {
-			showAlert("Session expired. Please log in again.");
-			router.push("/login");
+		apiClient.setOnUnauthorized(async (url: string) => {
+			console.log("setting unauthorized to:", url);
+			await rehydrate(url);
 		});
 
 		return () => {
 			// Clean up on unmount
-			apiClient.setOnUnauthorized(() => {});
+			apiClient.setOnUnauthorized(async (_url: string) => Promise.resolve());
 		};
-	}, [router]);
+	}, []);
 
 	// Sync token with apiClient whenever it changes
 	useEffect(() => {
-		console.log("apiClient token set:", accessToken);
+		console.log("apiClient token synced from state:", accessToken);
 		apiClient.setToken(accessToken);
 	}, [accessToken]);
 	console.log("hasCheckedRefresh:", hasCheckedRefresh);
 
-	useEffect(() => {
-		let cancelled = false;
-
-		async function rehydrate() {
-			try {
-				const data = await refreshAccessToken(); // backend will return 401 if no cookie
-				if (!cancelled) {
-					setAccessToken(data.access_token);
-					setUser(data.user);
-				}
-			} catch (err: any) {
-				console.log("No refresh token / refresh failed", err);
-				if (!cancelled) {
-					setAccessToken(null);
-					setUser(null);
-					if (!["/login", "/signup"].includes(pathname)) {
-						router.push("/login");
-					}
-				}
-			} finally {
-				if (!cancelled) setHasCheckedRefresh(true);
-			}
-		}
-
-		rehydrate();
-		return () => {
-			cancelled = true;
-		};
-	}, [pathname, router]);
-
-	// if (!hasCheckedRefresh) return null; // or show a loading spinner
 	return (
 		<AuthContext.Provider
 			value={{ user, setUser, accessToken, setAccessToken }}

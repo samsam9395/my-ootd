@@ -1,5 +1,5 @@
 import { ClothItem, ClothRecommendationSet, UpdateClothPayload } from "@/types";
-import { apiClient, backendUrl } from "@utils/api/apiClient";
+import { apiClient } from "@utils/api/apiClient";
 
 
 
@@ -71,16 +71,6 @@ function normalizeRecommendations(recs: any): ClothRecommendationSet | null {
 }
 
 export async function fetchRecommendations(itemId: number) {
-    // const res = await fetch(`${backendUrl}/recommendations/ai`, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ item_id: itemId }),
-    // });
-    // if (!res.ok) {
-    //     console.error("Failed to fetch recommendations");
-    //     return null;
-    // }
-    // const data = await res.json();
     const data = await apiClient.post("/recommendations/ai", { item_id: itemId });
     return normalizeRecommendations(data);
 }
@@ -91,11 +81,13 @@ export const updateCloth = async (updatePayload: { clothId: number; payload: Upd
     return data;
 }
 
+export const updateClothImage = async (clothId: number, imageUrl: string) => {
+    const data = await apiClient.put(`/clothes/${clothId}/image`, { image_url: imageUrl })
+    console.log('update cloth image res:', data);
+    return data
+}
+
 export const deleteCloth = async (clothId: number) => {
-    // const res = await fetch(`${backendUrl}/delete_cloth/${clothId}`, {
-    //     method: "DELETE",
-    // });
-    // return handleApiResponse(res, "Deleting cloth");
     const data = await apiClient.delete(`/clothes/${clothId}`);
     return data;
 }

@@ -7,10 +7,12 @@ import {
 	addCloth,
 	addClothStylesRelation,
 	addStyleTags,
+	updateClothImage,
 } from "@/utils/api/clothes";
 import { StyleTag } from "@/types";
 import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Cloth {
 	id?: string;
@@ -33,6 +35,7 @@ export default function AddClothForm({
 	existingCloth,
 	dbTagStyles = [], // styles already in DB
 }: AddClothFormProps) {
+	const { user } = useAuth();
 	const [name, setName] = useState(existingCloth?.name || "");
 	const [colour, setColour] = useState(existingCloth?.colour || "");
 	const [type, setType] = useState(clothingTypes[0].type);
@@ -50,36 +53,6 @@ export default function AddClothForm({
 			setAllStylesUI(dbTagStyles);
 		}
 	}, [dbTagStyles]);
-
-	const uploadImageToSupabase = async (file: File) => {
-		const sanitizeFileName = (name: string) => {
-			return name
-				.normalize("NFKD") // separate accents from letters
-				.replace(/[\u0300-\u036f]/g, "") // remove accents
-				.replace(/\s+/g, "_") // replace spaces
-				.replace(/[^a-zA-Z0-9_\-\.]/g, ""); // remove other unsafe chars
-		};
-
-		const fileName = `${Date.now()}-${sanitizeFileName(file.name)}`;
-		const { error } = await supabase.storage
-			.from("clothes-images")
-			.upload(fileName, file);
-
-		if (error) {
-			console.error("Error uploading file:", error);
-			return null;
-		}
-
-		const {
-			data: { publicUrl },
-		} = supabase.storage.from("clothes-images").getPublicUrl(fileName);
-
-		return publicUrl;
-	};
-
-	const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-		setImage(e.target.files?.[0] || null);
-	};
 
 	// Add a new style (typed by user)
 	const handleAddNewStyle = () => {
@@ -114,6 +87,11 @@ export default function AddClothForm({
 			return;
 		}
 		setLoading(true);
+
+		//For cleanup in case of failure
+		const pendingId = Date.now();
+		let uploadedFilePath: string | null = null; // keep track for cleanup
+		let newCloth: any = null;
 		try {
 			//1. Save new styles to DB
 			let savedNewStyles: StyleTag[] = []; // newly created in DB, store real ids
@@ -121,28 +99,19 @@ export default function AddClothForm({
 				savedNewStyles = await addStyleTags(newStyles.map((s) => s.name));
 			}
 
-			// 2. Upload image
-			const publicUrl = await uploadImageToSupabase(image);
-
-			if (!publicUrl) {
-				throw new Error("Image upload failed");
-			}
-
-			//3. Save cloth item to DB
-			const newCloth = await addCloth({
+			// 2. Save cloth item to DB (without image_url yet)
+			newCloth = await addCloth({
 				name,
 				type,
 				category: clothingTypes.find((ct) => ct.type === type)?.category ?? "",
 				colour,
-				image_url: publicUrl,
+				image_url: "", // temporary empty
 			});
 
-			// 4. Build junction table payload
+			// 3. Build junction table payload
 			const styleIds: number[] = [
-				...selectedStyles
-					.filter((s) => s.id) // remove empty string / undefined
-					.map((s) => Number(s.id)), // convert to number
-				...savedNewStyles.filter((s) => s.id).map((s) => Number(s.id)), // convert to number
+				...selectedStyles.filter((s) => s.id).map((s) => Number(s.id)),
+				...savedNewStyles.filter((s) => s.id).map((s) => Number(s.id)),
 			];
 
 			const clothStylesPayload = styleIds.map((styleId) => ({
@@ -150,9 +119,28 @@ export default function AddClothForm({
 				style_id: styleId,
 			}));
 
-			// 4. Send junction table data
 			const relationRes = await addClothStylesRelation(clothStylesPayload);
 			console.log("relationRes", relationRes);
+
+			// 5. Upload image to Supabase
+
+			const shortUserId = user!.id.split("-")[0]; // first block of UUID
+			const publicUrl = await uploadImageToSupabase(
+				image,
+				newCloth.id,
+				shortUserId
+			);
+			console.log("publicUrl after upload", publicUrl);
+			if (!publicUrl) {
+				throw new Error("Image upload failed");
+			}
+
+			uploadedFilePath = publicUrl.split("/clothes-images/")[1];
+
+			// 6. Update cloth item with image_url
+			await updateClothImage(newCloth.id, publicUrl);
+
+			showAlert("Cloth added successfully!", "success");
 
 			showAlert("Cloth added successfully!", "success");
 		} catch (error) {
@@ -162,6 +150,55 @@ export default function AddClothForm({
 			setLoading(false);
 			console.log("should stop loading");
 		}
+	};
+
+	// update image to supabase storage
+	const uploadImageToSupabase = async (
+		file: File,
+		clothId: number,
+		shortUserId: string
+	) => {
+		const sanitizeFileName = (name: string) => {
+			return name
+				.normalize("NFKD")
+				.replace(/[\u0300-\u036f]/g, "")
+				.replace(/\s+/g, "_")
+				.replace(/[^a-zA-Z0-9_\-\.]/g, "");
+		};
+
+		// Format today's date as YYYYMMDD
+		const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+		const fileName = `${shortUserId}-${clothId}-${sanitizeFileName(
+			file.name
+		)}-${today}`;
+
+		// Check if file with same name exists
+		const { data: existingFiles } = await supabase.storage
+			.from("clothes-images")
+			.list("", { search: fileName });
+
+		if (existingFiles && existingFiles.length > 0) {
+			// File already exists → reuse URL
+			const {
+				data: { publicUrl },
+			} = supabase.storage.from("clothes-images").getPublicUrl(fileName);
+			return publicUrl;
+		}
+
+		const { error } = await supabase.storage
+			.from("clothes-images")
+			.upload(fileName, file);
+
+		if (error) {
+			console.error("Error uploading file:", error);
+			return null;
+		}
+
+		const {
+			data: { publicUrl },
+		} = supabase.storage.from("clothes-images").getPublicUrl(fileName);
+
+		return publicUrl;
 	};
 
 	if (!isOpen) return null;
@@ -192,7 +229,7 @@ export default function AddClothForm({
 						<input
 							type="file"
 							accept="image/*"
-							onChange={handleImageChange}
+							onChange={(e) => setImage(e.target.files?.[0] || null)}
 							className="hidden"
 						/>
 					</label>

@@ -28,4 +28,5 @@ export type UpdateClothPayload = {
     type?: string;
     colour?: string;
     styles?: { id: string; name: string }[];
+    image_url?: string; // optional
 }
