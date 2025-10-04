@@ -1,3 +1,12 @@
 ./env
 ./vscode
 ./venv
+
+
+# python cache:
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.egg-info/
