@@ -52,6 +52,8 @@ export const addClothStylesRelation = async (
 function normalizeRecommendations(recs: any): ClothRecommendationSet | null {
     if (!recs || recs.length === 0) return null;
 
+    console.log('getting recs:', recs);
+
     return {
         _style_phrase: recs._style_phrase,
         items: Object.entries(recs)

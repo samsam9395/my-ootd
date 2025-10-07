@@ -1,5 +1,5 @@
 from supabase import create_client
-from flask import current_app
+from flask import current_app, g
 import unicodedata
 
 _supabase = None
@@ -13,18 +13,29 @@ def get_supabase():
         )
     return _supabase
 
+# -------------------------------
+# Helper to get current user_id from token (set in g.user_id by token_required)
+# -------------------------------
+def get_current_user_id():
+    return getattr(g, "user_id", None)
+
+
 # Fetch cloth by type and pagination
 def get_clothes_by_type(category: str | None, limit: int, offset: int):
+    user_id = get_current_user_id()
+    if not user_id:
+        return []
+
     supabase = get_supabase()
     query = supabase.table("clothes").select("""
         id, name, type, colour, category, image_url,
         clothes_styles!inner(
             styles!inner(id, name)
         )
-    """).range(offset, offset + limit - 1)
-    print('query in DB:', query)
-    if category:  # only filter if category is specified
-        query = query.eq("category", category)
+    """).eq("user_id", user_id).range(offset, offset + limit - 1)
+    
+    if category and category.lower() != "all":
+        query = query.eq("category", category.lower())
 
     data = query.execute()
     result = [
@@ -44,6 +55,11 @@ def get_clothes_by_type(category: str | None, limit: int, offset: int):
 # Fetch all items
 def get_all_items():
     supabase = get_supabase()
+    user_id = get_current_user_id()
+    
+    if not user_id:
+        return []  # or handle unauthorized
+    
     try:
         response = supabase.table("clothes").select("""
             id,
@@ -58,7 +74,7 @@ def get_all_items():
                     name
                 )
             )
-        """).execute()
+        """).eq("user_id", user_id).execute()
         
         return response.data
     except Exception as e:
@@ -105,8 +121,10 @@ def insert_cloth_style_relation(cloth_styles):
 # Get random 5 items for Shuffle
 def get_random_items():
     supabase = get_supabase()
+    user_id = get_current_user_id()
+    print('get random: user_id=', user_id)
     try:
-        response = supabase.rpc("get_random_clothes", {"limit_count": 5}).execute()
+        response = supabase.rpc("get_random_clothes", {"p_user_id": user_id, "limit_count": 5}).execute()
         return response.data
 
     except Exception as e:
@@ -117,6 +135,10 @@ def get_random_items():
 
 # Add cloth item
 def insert_cloth(name,type_, category, colour):
+    user_id = get_current_user_id()
+    if not user_id:
+        return None
+    
     supabase = get_supabase()
     # Normalize here
     clean_name = unicodedata.normalize('NFC', name)
@@ -126,8 +148,9 @@ def insert_cloth(name,type_, category, colour):
     colour = unicodedata.normalize('NFC', colour).strip().lower()
 
     try:
-            # 1. Check if cloth with the same name exists
-        existing = supabase.table("clothes").select("*").eq("name", name).execute()
+        # 1. Check if cloth with the same name exists
+        existing = supabase.table("clothes").select("*")\
+            .eq("name", name).eq("user_id", user_id).execute()
         
         if existing.data and len(existing.data) > 0:
             # 2. Update existing row
@@ -136,7 +159,6 @@ def insert_cloth(name,type_, category, colour):
                 "type": type_,
                 "category": category,
                 "colour": colour,
-                # "image_url": image_url
             }).eq("id", cloth_id).execute()
             return response.data[0]
         else:
@@ -146,7 +168,7 @@ def insert_cloth(name,type_, category, colour):
                 "type": type_,
                 "category": category,
                 "colour": colour,
-                # "image_url": image_url
+                "user_id": user_id,
             }).execute()
             return response.data[0] if response.data else None
     except Exception as e:
@@ -156,7 +178,17 @@ def insert_cloth(name,type_, category, colour):
 
     # Update existing cloth item using RPC (transactional)
 def update_cloth_in_db(cloth_id, cloth_data):
+    user_id = get_current_user_id()
+    if not user_id:
+        return {"success": False, "error": "Unauthorized"}
+
     supabase = get_supabase()
+    # verify ownership
+    existing = supabase.table("clothes").select("id")\
+        .eq("id", cloth_id).eq("user_id", user_id).execute()
+    if not existing.data:
+        return {"success": False, "error": "Cloth not found or not yours"}
+
 
     try:
         # 1. Extract style IDs from input
@@ -179,6 +211,7 @@ def update_cloth_in_db(cloth_id, cloth_data):
         response = supabase.rpc(
     "update_cloth_with_styles",
     {
+        "p_user_id": user_id,
         "p_cloth_id": cloth_id,
         "p_name": cloth_data["name"],
         "p_colour": cloth_data["colour"],
@@ -197,6 +230,11 @@ def update_cloth_in_db(cloth_id, cloth_data):
         
 # Update cloth image URL only 
 def update_cloth_url(cloth_id: int, image_url:str) -> bool:
+    user_id = get_current_user_id()
+    if not user_id:
+            return False
+
+
     supabase = get_supabase()
     try:
         res = supabase.table("clothes").update({"image_url":image_url}).eq("id", cloth_id).execute()
@@ -211,11 +249,17 @@ def delete_cloth_in_db(cloth_id: int) -> bool:
     Deletes a cloth item by its ID.
     Returns True if deletion succeeded, False otherwise.
     """
+    
+    user_id = get_current_user_id()
+    if not user_id:
+        return False
+
     supabase = get_supabase()
     
     try:
         #get cloth item first for image path
-        cloth_res = supabase.table("clothes").select("image_url").eq("id", cloth_id).execute()
+        cloth_res = supabase.table("clothes").select("image_url")\
+            .eq("id", cloth_id).eq("user_id", user_id).execute()
         
         if not cloth_res.data:
             return False # cloth not found
@@ -223,7 +267,8 @@ def delete_cloth_in_db(cloth_id: int) -> bool:
         image_url = cloth_res.data[0].get("image_url")
         
         #delete from database first
-        delete_res = supabase.table("clothes").delete().eq("id", cloth_id).execute()
+        delete_res = supabase.table("clothes").delete()\
+            .eq("id", cloth_id).eq("user_id", user_id).execute()
         
         if not delete_res.data:
             return False #deletion failed

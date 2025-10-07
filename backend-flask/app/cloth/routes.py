@@ -58,8 +58,7 @@ def add_cloth():
     name=data.get("name", "").strip(),
     type_=data.get("type", "").strip(),
     category=data.get("category", "").strip(),
-    colour=data.get("colour", "").strip(),
-    # image_url=data.get("image_url", "").strip()
+    colour=data.get("colour", "").strip()
 )
     if not cloth:
         return jsonify({"message": "Insert failed"}), 500
@@ -74,7 +73,7 @@ def update_cloth(id):
     data = request.json
     try:
         result = update_cloth_in_db(id, data)
-        if not id or not data:
+        if not data:
             return jsonify({"message": "No valid fields to update"}), 400
         return jsonify({"success": True, "updated": result}), 200
     except Exception as e:

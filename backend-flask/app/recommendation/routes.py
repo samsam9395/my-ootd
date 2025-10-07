@@ -1,4 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
+
+from app.auth.auth_utils import token_required
 from ..cloth.db_service import (
     get_all_items,
 )
@@ -10,6 +12,7 @@ bp = Blueprint("recommendations", __name__)
 
 # Cosine similarity recommendation
 @bp.route("/cosine",methods=["POST"])
+@token_required
 def recommend_cosine():
     data = request.json
     selected_item_id = data.get("item_id")
@@ -31,6 +34,7 @@ def recommend_cosine():
 
 # AI-based recommendation
 @bp.route("/ai", methods=["POST"])
+@token_required
 def recommend_ai():
     data = request.json
     selected_item_id = data.get("item_id")
