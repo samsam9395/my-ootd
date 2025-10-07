@@ -67,13 +67,15 @@ export default function ClothView({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4"
+					className="fixed inset-0 bg-black/50 flex justify-center items-start md:items-center z-50 p-4 overflow-y-auto"
 				>
 					<motion.div
 						initial={{ y: 50, opacity: 0 }}
 						animate={{ y: 0, opacity: 1 }}
 						exit={{ y: 50, opacity: 0 }}
-						className="bg-white rounded-lg max-h-full overflow-auto w-full max-w-3xl p-6 pt-15 relative flex flex-col md:flex-row gap-4"
+						className="bg-white rounded-lg w-full max-w-3xl p-6 pt-15 relative flex flex-col md:flex-row gap-4
+    max-h-[90vh] overflow-hidden
+    mt-16 md:mt-0"
 					>
 						{/* Manage Button */}
 						<button
@@ -92,15 +94,24 @@ export default function ClothView({
 						>
 							<X size={24} />
 						</button>
+
 						{/* Main image */}
 						<div className="w-full md:w-[400px] flex justify-center items-center shrink-0">
 							<img
 								src={item.image_url}
 								alt={item.name}
-								className="max-h-[70vh] w-auto md:w-full object-cover rounded-lg"
+								className="
+              w-auto md:w-full
+              max-h-[60vh] md:max-h-[70vh]
+              object-contain
+              rounded-lg
+              mb-4 md:mb-0
+            "
 							/>
 						</div>
-						<div className="flex-1 w-full">
+
+						{/* Right panel (scrollable) */}
+						<div className="flex-1 w-full flex flex-col overflow-y-auto pr-2">
 							{isEditMode ? (
 								<ClothViewEditForm
 									dbTagStyles={dbTagStyles}
@@ -108,7 +119,6 @@ export default function ClothView({
 									onSave={onSave}
 									onClose={onClose}
 									onDelete={onDelete}
-									setIsEditMode={setIsEditMode}
 								/>
 							) : (
 								<ClothViewRecommendations

@@ -212,7 +212,37 @@ def delete_cloth_in_db(cloth_id: int) -> bool:
     Returns True if deletion succeeded, False otherwise.
     """
     supabase = get_supabase()
-    res = supabase.table("clothes").delete().eq("id", cloth_id).execute()
     
-    # res.data is a list of deleted rows
-    return bool(res.data)  # True if at least one row deleted
+    try:
+        #get cloth item first for image path
+        cloth_res = supabase.table("clothes").select("image_url").eq("id", cloth_id).execute()
+        
+        if not cloth_res.data:
+            return False # cloth not found
+
+        image_url = cloth_res.data[0].get("image_url")
+        
+        #delete from database first
+        delete_res = supabase.table("clothes").delete().eq("id", cloth_id).execute()
+        
+        if not delete_res.data:
+            return False #deletion failed
+        
+        #delete image from storage
+        if image_url:
+            try:
+                # Extract the file path from url
+                if "/clothes-images/" in image_url:
+                    file_path = image_url.split("clothes-images/")[1]
+                    # Remove any query parameters
+                    file_path = file_path.split("?")[0]
+                    
+                    supabase.storage.from_("clothes-images").remove([file_path])
+            except Exception as storage_error:
+                # Log the error but do not fail the whole operation
+                print(f"Warning:Failed to delete image from storage: {storage_error}")
+        return True
+    except Exception as e:
+        print(f"Error deleting cloth item: {e}")
+        return False
+            

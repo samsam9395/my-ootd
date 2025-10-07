@@ -79,6 +79,17 @@ export default function AddClothForm({
 		}
 	};
 
+	const resetForm = () => {
+		// Reset form
+		setName("");
+		setColour("");
+		setType(clothingTypes[0].type);
+		setSelectedStyles([]);
+		setNewStyles([]);
+		setNewStyleInput("");
+		setImage(null);
+	};
+
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
@@ -141,15 +152,17 @@ export default function AddClothForm({
 			await updateClothImage(newCloth.id, publicUrl);
 
 			showAlert("Cloth added successfully!", "success");
-
-			showAlert("Cloth added successfully!", "success");
+			handleClose();
 		} catch (error) {
 			showAlert("Network error. Try again later.", "error");
 		} finally {
-			onClose();
 			setLoading(false);
-			console.log("should stop loading");
 		}
+	};
+
+	const handleClose = () => {
+		resetForm();
+		onClose();
 	};
 
 	// update image to supabase storage
@@ -208,7 +221,7 @@ export default function AddClothForm({
 			{loading && <FullPageLoader />}
 			<div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-lg relative">
 				<button
-					onClick={onClose}
+					onClick={handleClose}
 					className="absolute top-4 right-4 font-bold text-lg cursor-pointer"
 				>
 					<X size={24} />

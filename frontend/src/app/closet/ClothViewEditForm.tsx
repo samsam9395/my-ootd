@@ -11,7 +11,6 @@ type ClothViewEditFormProps = {
 		payload: UpdateClothPayload;
 	}) => Promise<any>;
 	onDelete: (id: number) => void;
-	setIsEditMode: (value: boolean) => void;
 	dbTagStyles: StyleTag[];
 };
 export default function ClothViewEditForm({
@@ -19,7 +18,6 @@ export default function ClothViewEditForm({
 	onClose,
 	onSave,
 	onDelete,
-	setIsEditMode,
 	dbTagStyles = [],
 }: ClothViewEditFormProps) {
 	const [name, setName] = useState(item?.name || "");
@@ -72,7 +70,14 @@ export default function ClothViewEditForm({
 
 		try {
 			await onSave(savePayload); // your existing save function
-			// optionally: show a small toast/alert for success
+			setColour("");
+			setName("");
+			setType(clothingTypes[0].type);
+			setSelectedStyles([]);
+			setNewStyles([]);
+			setNewStyleInput("");
+
+			// Show success alert
 			showAlert("Cloth updated successfully!", "success");
 			onClose();
 		} catch (err) {
@@ -202,7 +207,16 @@ export default function ClothViewEditForm({
 			{/* Delete */}
 			<button
 				type="button"
-				onClick={() => onDelete(item.id)}
+				onClick={() => {
+					console.log("deleting item", item.id);
+					if (
+						window.confirm(
+							"Are you sure you want to delete this item? This action cannot be undone."
+						)
+					) {
+						onDelete(item.id);
+					}
+				}}
 				className="bg-red-500 text-white py-2 px-4 rounded mt-4 cursor-pointer"
 			>
 				Delete Item

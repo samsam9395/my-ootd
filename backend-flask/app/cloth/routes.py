@@ -160,12 +160,16 @@ def add_cloth_styles():
 @bp.route("/<int:id>", methods=["DELETE"])
 @token_required
 def delete_cloth(id):
+    """" Delete cloth and its image by id """
     if not id:
         return jsonify({"message": "Cloth ID is required"}), 400
     try:
         success = delete_cloth_in_db(id)
         if not success:
             return jsonify({"message": "Cloth not found or delete failed"}), 404
+        
         return jsonify({"message": "Cloth deleted successfully"}), 200
+    
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        print(f"Error in delete_cloth endpoint: {e}")
+        return jsonify({"message": "An error occurred while deleting the cloth item", "error": str(e)}), 500

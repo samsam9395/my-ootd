@@ -3,8 +3,13 @@ import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
 import { ClothRecommendationSet, StyleTag, UpdateClothPayload } from "@/types";
-import { getPageClothesByType, updateCloth } from "@/utils/api/clothes";
+import {
+	deleteCloth,
+	getPageClothesByType,
+	updateCloth,
+} from "@/utils/api/clothes";
 import { useAlert } from "@/contexts/AlertContext";
+import FullPageLoader from "@/components/common/fullPageLoader";
 
 const ITEM_LIMIT = 3;
 
@@ -37,6 +42,7 @@ export default function Gallery({
 	const [selectedClothIndex, setSelectedClothIndex] = useState<number | null>(
 		null
 	);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -137,11 +143,43 @@ export default function Gallery({
 			throw new Error(res.error || "Failed to update"); // rejected promise
 		}
 	};
-	const handleDeleteItem = () => {
+	const handleDeleteItem = async () => {
 		// Remove the item from the gallery after delete
+		if (selectedClothIndex === null || !fetchItems[selectedClothIndex]) return;
+
+		const itemToDelete = fetchItems[selectedClothIndex];
+		const confirmDelete = window.confirm(
+			`Are you sure you want to delete this item? This action cannot be undone.`
+		);
+
+		if (!confirmDelete) return;
+		try {
+			setIsDeleting(true);
+			const res = await deleteCloth(itemToDelete.id);
+			console.log("deletion res:", res);
+			if (res) {
+				// Remove item from local state
+				setFetchItems((prev) =>
+					prev.filter((item) => item.id !== itemToDelete.id)
+				);
+
+				// Close the viewer
+				setSelectedClothIndex(null);
+
+				showAlert("Cloth deleted successfully!", "success");
+			} else {
+				showAlert(`Failed to delete cloth: ${itemToDelete.name}`, "error");
+			}
+		} catch (error) {
+			console.error("Error deleting item:", error);
+			showAlert(`Failed to delete cloth: ${error || "Unknown error"}`, "error");
+		} finally {
+			setIsDeleting(false);
+		}
 	};
 	return (
 		<>
+			{isDeleting && <FullPageLoader />}
 			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 				{fetchItems.map((item, index) => (
 					<div
