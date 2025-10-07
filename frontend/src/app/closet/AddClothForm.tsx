@@ -14,6 +14,7 @@ import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";
 import { useAuth } from "@/contexts/AuthContext";
 
+
 interface Cloth {
 	id?: string;
 	name: string;
@@ -47,7 +48,7 @@ export default function AddClothForm({
 	const [newStyles, setNewStyles] = useState<StyleTag[]>([]);
 	const [newStyleInput, setNewStyleInput] = useState("");
 	const [allStylesUI, setAllStylesUI] = useState<StyleTag[]>([]);
-
+	const [addStyleError, setAddStyleError] = useState("");
 	useEffect(() => {
 		if (dbTagStyles?.length) {
 			setAllStylesUI(dbTagStyles);
@@ -56,11 +57,22 @@ export default function AddClothForm({
 
 	// Add a new style (typed by user)
 	const handleAddNewStyle = () => {
-		if (!newStyleInput) return;
+		const name = newStyleInput.trim().toLowerCase();
+		if (!name) return;
 
+		// simple validation
+		if (name.length > 20) {
+			setAddStyleError("Style name too long (max 20 chars).");
+			return;
+		}
+		if (!/^[a-z\s]+$/.test(name)) {
+			setAddStyleError("Use letters only (no emojis/symbols).");
+			return;
+		}
+		setAddStyleError("");
 		// Avoid duplicates in selectedStyles
-		if (!selectedStyles.some((s) => s.name === newStyleInput)) {
-			const fakeStyle: StyleTag = { id: "", name: newStyleInput }; // fake id, DB will assign real id
+		if (!selectedStyles.some((s) => s.name === name)) {
+			const fakeStyle: StyleTag = { id: "", name }; // fake id, DB will assign real id
 			setSelectedStyles([...selectedStyles, fakeStyle]);
 			setNewStyles([...newStyles, fakeStyle]);
 
@@ -326,6 +338,9 @@ export default function AddClothForm({
 								Add
 							</button>
 						</div>
+						{addStyleError && (
+							<div className="text-red-500">{addStyleError}</div>
+						)}
 					</div>
 
 					{/* Submit */}

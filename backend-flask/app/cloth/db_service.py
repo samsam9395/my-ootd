@@ -85,8 +85,8 @@ def create_style_tags(names):
         return []  
 
     try:
-        response = supabase.table("styles").upsert(new_tags).execute()
-        return response.data  # this is already your inserted rows
+        response = supabase.table("styles").upsert(new_tags, on_conflict="name").execute()
+        return response.data   # this is already your inserted rows
     except Exception as e:
         # handle the Supabase error
         print("Error inserting style tags:", e)
