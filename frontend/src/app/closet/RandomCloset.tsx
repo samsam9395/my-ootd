@@ -6,6 +6,7 @@ import { ClothItem, ClothRecommendationSet } from "@/types";
 import { fetchRecommendations } from "@/utils/api/clothes";
 import Loader from "@/components/common/loader";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 type RandomClosetProps = { randomItemsArr: ClothItem[] };
 
@@ -100,7 +101,9 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 					const scale = diff === 0 ? 1 : 0.5;
 
 					return (
-						<img
+						<Image
+							width={300}
+							height={400}
 							key={i}
 							src={item.image_url}
 							alt={`clothing-${i}`}
@@ -128,7 +131,9 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 					) : recResponse && recResponse.items.length > 0 ? (
 						<>
 							<h3 className="font-bold text-lg mb-2">
-								Suggested items for "{selectedItem.name}"
+								Suggested items for {'"'}
+								{selectedItem.name}
+								{'"'}
 							</h3>
 							<div className="text-sm text-gray-500 mb-4">
 								Theme: <em>{recResponse?._style_phrase}</em>
@@ -142,7 +147,9 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 											className="min-w-[120px] flex-shrink-0 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform cursor-pointer"
 											onClick={() => setModalItem(item)}
 										>
-											<img
+											<Image
+												width={120}
+												height={120}
 												src={item.image_url}
 												alt={item?.name}
 												className="w-full h-32 object-cover"
@@ -182,7 +189,9 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 							<X size={26} />
 						</button>
 
-						<img
+						<Image
+							width={400}
+							height={400}
 							src={modalItem.image_url}
 							alt={modalItem?.name}
 							onLoad={() => setImgLoaded(true)}

@@ -6,6 +6,7 @@ import logo from "@/public/my-ootd-logo.png";
 import { useAlert } from "@/contexts/AlertContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { signup, SignupPayload } from "@/utils/api/auth";
+import Image from "next/image";
 
 export default function SignupPage() {
 	const router = useRouter();
@@ -57,7 +58,13 @@ export default function SignupPage() {
 	return (
 		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
 			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-				<img alt="My OOTD" src={logo.src} className="mx-auto h-50 w-auto" />
+				<Image
+					width={50}
+					height={50}
+					alt="My OOTD"
+					src={logo.src}
+					className="mx-auto h-50 w-auto"
+				/>
 				<h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
 					Create your account
 				</h2>

@@ -1,5 +1,6 @@
 import Loader from "@/components/common/loader";
 import { ClothRecommendationSet } from "@/types";
+import Image from "next/image";
 
 type ClothViewRecommendationsProps = {
 	isLoadingRecs: boolean;
@@ -52,7 +53,9 @@ function ClothViewRecommendations({
 							.filter(({ item }) => item && item.id)
 							.map(({ category, item }) => (
 								<div key={item.id} className="flex flex-row items-center gap-2">
-									<img
+									<Image
+										width={112}
+										height={112}
 										src={item.image_url}
 										alt={item.name}
 										className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg"

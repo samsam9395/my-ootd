@@ -12,6 +12,7 @@ import { X, Ellipsis } from "lucide-react";
 import { useState } from "react";
 import ClothViewRecommendations from "./ClothViewRecommendations";
 import ClothViewEditForm from "./ClothViewEditForm";
+import Image from "next/image";
 
 type ClothViewProps = {
 	dbTagStyles: StyleTag[];
@@ -96,7 +97,9 @@ export default function ClothView({
 
 						{/* Main image */}
 						<div className="w-full md:w-[400px] flex justify-center items-center shrink-0">
-							<img
+							<Image
+								width={400}
+								height={400}
 								src={item.image_url}
 								alt={item.name}
 								className="

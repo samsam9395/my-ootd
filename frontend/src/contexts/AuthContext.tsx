@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		useState<AuthContextType["accessToken"]>(null);
 	const [hasCheckedRefresh, setHasCheckedRefresh] = useState(false);
 	const router = useRouter();
-	const pathname = usePathname();
 
 	// Track refresh promise for queuing multiple 401s
 	const refreshPromiseRef = useRef<Promise<void> | null>(null);
@@ -103,7 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 		return () => {
 			// Clean up on unmount
-			apiClient.setOnUnauthorized(async (_url: string) => Promise.resolve());
+			apiClient.setOnUnauthorized(async (url: string) => Promise.resolve());
 		};
 	}, []);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import RandomCloset from "./RandomCloset";
 import Gallery from "./Gallery";
 import AddClothForm from "./AddClothForm";
@@ -19,20 +19,17 @@ const categories = [
 	"accessory",
 ];
 
-const backendUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` || "";
-
-export default function ClosetPage() {
+function ClosetContent() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const { accessToken } = useAuth();
 	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [dbTagStyles, setDbTagStyles] = useState<StyleTag[]>([]);
-
 	const [randomItemsArr, setRandomItemsArr] = useState([]);
 
 	function handleCategoryChange(category: string) {
-		if (category === selectedCategory) return; // no change
+		if (category === selectedCategory) return;
 		router.push(`/closet?category=${category}`);
 	}
 
@@ -42,12 +39,11 @@ export default function ClosetPage() {
 	}, [searchParams]);
 
 	useEffect(() => {
-		if (!accessToken) return; // wait for token
+		if (!accessToken) return;
 		async function getDBStyles() {
 			const styles = await getStyleTags();
 			setDbTagStyles(styles);
 		}
-
 		getDBStyles();
 	}, [accessToken]);
 
@@ -67,14 +63,14 @@ export default function ClosetPage() {
 				onClose={() => setIsFormOpen(false)}
 			/>
 			{/* Left sidebar */}
-			<aside className="w-48 shrink-0 p-6 ">
+			<aside className="w-48 shrink-0 p-6">
 				<h2 className="font-bold text-xl mb-4">Categories</h2>
 				<ul className="space-y-2">
 					{categories.map((cat) => (
 						<li key={cat}>
 							<button
 								className={`hover:underline cursor-pointer ${
-									selectedCategory === cat ? "font-bold text-black-800 " : ""
+									selectedCategory === cat ? "font-bold text-black-800" : ""
 								}`}
 								onClick={() => handleCategoryChange(cat)}
 							>
@@ -97,7 +93,7 @@ export default function ClosetPage() {
 				</div>
 				<div className="w-full px-6 mb-2">
 					<p className="text-gray-500 italic text-sm">
-						🎲 Today's lucky picks from your closet
+						{"🎲 Today's lucky picks from your closet"}
 					</p>
 				</div>
 				<RandomCloset randomItemsArr={randomItemsArr} />
@@ -109,5 +105,19 @@ export default function ClosetPage() {
 				</div>
 			</main>
 		</div>
+	);
+}
+
+export default function ClosetPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex items-center justify-center h-screen">
+					Loading...
+				</div>
+			}
+		>
+			<ClosetContent />
+		</Suspense>
 	);
 }

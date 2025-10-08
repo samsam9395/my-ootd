@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { supabase } from "@/utils/supabase/client";
 import FullPageLoader from "@/components/common/fullPageLoader";
 import { useAlert } from "@/contexts/AlertContext";
@@ -13,6 +13,7 @@ import { StyleTag } from "@/types";
 import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";
 import { useAuth } from "@/contexts/AuthContext";
+import Image from "next/image";
 
 interface Cloth {
 	id?: string;
@@ -111,8 +112,6 @@ export default function AddClothForm({
 		setLoading(true);
 
 		//For cleanup in case of failure
-		const pendingId = Date.now();
-		let uploadedFilePath: string | null = null; // keep track for cleanup
 		let newCloth: any = null;
 		try {
 			//1. Save new styles to DB
@@ -155,8 +154,6 @@ export default function AddClothForm({
 			if (!publicUrl) {
 				throw new Error("Image upload failed");
 			}
-
-			uploadedFilePath = publicUrl.split("/clothes-images/")[1];
 
 			// 6. Update cloth item with image_url
 			await updateClothImage(newCloth.id, publicUrl);
@@ -241,7 +238,9 @@ export default function AddClothForm({
 					{/* Photo Upload */}
 					<label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-black text-gray-500">
 						{image ? (
-							<img
+							<Image
+								width={128}
+								height={128}
 								src={URL.createObjectURL(image)}
 								alt="cloth"
 								className="w-32 h-32 object-cover rounded"

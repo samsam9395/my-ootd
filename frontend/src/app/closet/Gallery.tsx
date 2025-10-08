@@ -10,6 +10,7 @@ import {
 } from "@/utils/api/clothes";
 import { useAlert } from "@/contexts/AlertContext";
 import FullPageLoader from "@/components/common/fullPageLoader";
+import Image from "next/image";
 
 const ITEM_LIMIT = 3;
 
@@ -180,7 +181,9 @@ export default function Gallery({
 						onClick={() => setSelectedClothIndex(index)}
 						className="bg-white rounded-lg shadow-md cursor-pointer"
 					>
-						<img
+						<Image
+							width={400}
+							height={400}
 							src={item.image_url}
 							alt={item.name}
 							className="w-full h-64 sm:h-72 md:h-80 lg:h-96 object-cover rounded-t-lg"

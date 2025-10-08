@@ -6,6 +6,7 @@ import logo from "@/public/my-ootd-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeClosed } from "lucide-react";
 import { login, LoginPayload } from "@/utils/api/auth";
+import Image from "next/image";
 
 function LoginPage() {
 	const router = useRouter();
@@ -34,8 +35,10 @@ function LoginPage() {
 	return (
 		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 justify-self-center">
 			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-				<img
-					alt="Your Company"
+				<Image
+					width={200}
+					height={50}
+					alt="OOTD Logo"
 					src={logo.src}
 					className="mx-auto h-50 w-auto"
 				/>
