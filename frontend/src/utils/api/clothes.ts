@@ -2,9 +2,6 @@ import { ClothItem, ClothRecommendationSet, UpdateClothPayload } from "@/types";
 import { apiClient } from "@utils/api/apiClient";
 
 
-
-
-
 export const getPageClothesByType = async (
     selectedCategory: string,
     limit: number,
@@ -36,7 +33,6 @@ export const addCloth = async (payload: {
     image_url: string;
 }) => {
 
-    console.log('payload for adding cloth', payload);
     const data = await apiClient.post("/clothes", payload);
     return data;
 };
@@ -44,7 +40,6 @@ export const addCloth = async (payload: {
 export const addClothStylesRelation = async (
     clothStylesPayload: { cloth_id: number; style_id: number }[]
 ) => {
-    console.log("clothStylesPayload:", clothStylesPayload);
     const data = await apiClient.post("/clothes/cloth_styles", clothStylesPayload);
     return data;
 };
@@ -52,7 +47,6 @@ export const addClothStylesRelation = async (
 function normalizeRecommendations(recs: any): ClothRecommendationSet | null {
     if (!recs || recs.length === 0) return null;
 
-    console.log('getting recs:', recs);
 
     return {
         _style_phrase: recs._style_phrase,

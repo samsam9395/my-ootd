@@ -14,7 +14,6 @@ import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";
 import { useAuth } from "@/contexts/AuthContext";
 
-
 interface Cloth {
 	id?: string;
 	name: string;
@@ -142,8 +141,7 @@ export default function AddClothForm({
 				style_id: styleId,
 			}));
 
-			const relationRes = await addClothStylesRelation(clothStylesPayload);
-			console.log("relationRes", relationRes);
+			await addClothStylesRelation(clothStylesPayload);
 
 			// 5. Upload image to Supabase
 
@@ -153,7 +151,7 @@ export default function AddClothForm({
 				newCloth.id,
 				shortUserId
 			);
-			console.log("publicUrl after upload", publicUrl);
+
 			if (!publicUrl) {
 				throw new Error("Image upload failed");
 			}

@@ -38,7 +38,7 @@ def recommend_cosine():
 def recommend_ai():
     data = request.json
     selected_item_id = data.get("item_id")
-    print("Selected item ID:", selected_item_id)
+    # print("Selected item ID:", selected_item_id)
     try:
         outfit = recommend_outfit(
             selected_item_id=selected_item_id)

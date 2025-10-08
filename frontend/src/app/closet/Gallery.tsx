@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { ClothRecommendationSet, StyleTag, UpdateClothPayload } from "@/types";
+import { StyleTag, UpdateClothPayload } from "@/types";
 import {
 	deleteCloth,
 	getPageClothesByType,
@@ -81,13 +81,6 @@ export default function Gallery({
 		const callFetchMoreData = async () => {
 			setIsLoading(true);
 
-			// const data = await fetchMoreData(selectedCategory, page);
-
-			// if (!data || data.length === 0) {
-			// 	setHasMore(false);
-			// } else {
-			// 	setFetchItems((prev) => [...prev, ...data]);
-			// }
 			const offset = page * ITEM_LIMIT; // calculate offset
 			const data = await getPageClothesByType(
 				selectedCategory,

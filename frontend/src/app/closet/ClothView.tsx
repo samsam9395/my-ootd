@@ -1,6 +1,5 @@
 "use client";
 
-import Loader from "@/components/common/loader";
 import {
 	ClothItem,
 	ClothRecommendationSet,

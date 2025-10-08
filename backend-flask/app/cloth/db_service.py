@@ -122,7 +122,6 @@ def insert_cloth_style_relation(cloth_styles):
 def get_random_items():
     supabase = get_supabase()
     user_id = get_current_user_id()
-    print('get random: user_id=', user_id)
     try:
         response = supabase.rpc("get_random_clothes", {"p_user_id": user_id, "limit_count": 5}).execute()
         return response.data
@@ -219,8 +218,6 @@ def update_cloth_in_db(cloth_id, cloth_data):
         "p_style_ids": all_style_ids  # list of integers
     }
 ).execute()
-        print("RPC response:", response)
-
         return {"success": True}
 
     except Exception as e:
