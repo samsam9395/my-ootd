@@ -29,7 +29,7 @@ def ask_openrouter_for_outfit(shortlist, selected_item):
     "\n- Do NOT explain or justify your choices."
     )
     
-    print("AI prompt:", prompt)
+    # print("AI prompt:", prompt)
     response = requests.post(
         url="https://openrouter.ai/api/v1/chat/completions",
         headers={
@@ -43,5 +43,5 @@ def ask_openrouter_for_outfit(shortlist, selected_item):
         })
     )
     res_json = response.json()
-    print("AI response:", res_json)
+    # print("AI response:", res_json)
     return res_json["choices"][0]["message"]["content"]

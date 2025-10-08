@@ -21,7 +21,6 @@ def signup():
     password = data.get("password")
     
     nowUTC = datetime.datetime.now(datetime.timezone.utc)
-    print('request data:', data)
 
     if not email or not username or not password:
         return jsonify({"error":"Missing fields"}), 400
@@ -30,7 +29,6 @@ def signup():
         return jsonify({"error":"Password must be at least 8 characters and include at least one letter and one number"}), 400
 
     if len(password.encode("utf-8")) > 72:  # count bytes
-        print('Password too long', password, len(password.encode("utf-8")))
         return jsonify({"error": "Password too long; max 72 bytes"}), 400
 
     supabase = get_supabase()
@@ -43,7 +41,6 @@ def signup():
 
     # Hash password correctly
     password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    print('password_hash generated', password_hash)
 
     # Insert user
     user = supabase.table("users").insert({
@@ -125,7 +122,7 @@ def login():
         "exp": nowUTC + datetime.timedelta(days=7)
     }, SECRET_KEY, algorithm="HS256")
 
-    print('refresh_token generated:', refresh_token)
+
     # Store refresh token
     supabase.table("refresh_tokens").insert({
         "user_id": user_id,

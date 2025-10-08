@@ -1,5 +1,5 @@
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 import os
 
 from app.auth.auth_utils import token_required
@@ -27,12 +27,12 @@ def get_wardrobe():
     category = request.args.get("type", "all").lower()
     limit = int(request.args.get("limit", 3))
     offset = int(request.args.get("offset", 0))
-    print(f"Fetching clothes of type: {category}, limit: {limit}, offset: {offset}")
+   
     if category == "" or category == "all":
         clothes = get_clothes_by_type(None, limit, offset)  # no filter
     else:
         clothes = get_clothes_by_type(category, limit, offset)
-    print("Fetched clothes:", clothes)
+
     return jsonify(clothes)
 
 #Create new cloth item
@@ -48,7 +48,7 @@ def add_cloth():
     }
     """
     data = request.json
-    print('request data:', data)
+
     # Basic validation
     if not all([data.get("name"), data.get("type"), data.get("category"),
                 data.get("colour")]):
@@ -101,7 +101,7 @@ def update_cloth_image(id):
 @token_required
 def get_random_clothes():
     try:
-        print('Going to run get_random_items() Flask')
+
         items = get_random_items()
         return jsonify(items)
     except Exception as e:
@@ -145,12 +145,12 @@ def add_cloth_styles():
     ]
     """
     data = request.json
-    print("Received cloth-style relation data:", data)
+
     if not isinstance(data, list) or not data:
         return jsonify({"message": "Invalid input, expected a non-empty list"}), 400
     try:
         response = insert_cloth_style_relation(data)
-        print("Insert cloth-style relation response:", response)
+
         return jsonify(response), 201
     except Exception as e:
         return jsonify({"message": str(e)}), 500
@@ -170,5 +170,5 @@ def delete_cloth(id):
         return jsonify({"message": "Cloth deleted successfully"}), 200
     
     except Exception as e:
-        print(f"Error in delete_cloth endpoint: {e}")
+
         return jsonify({"message": "An error occurred while deleting the cloth item", "error": str(e)}), 500
