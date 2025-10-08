@@ -26,7 +26,10 @@ def create_app():
     app.register_blueprint(rec_bp, url_prefix="/api/recommendations", strict_slashes=False)
 
     # Allow all routes from localhost:3000 (dev only)
-    CORS(app, origins=["http://localhost:3000"], supports_credentials=True,  methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    CORS(app, origins=[
+        "http://localhost:3000",
+        "https://my-ootd-281zw9iyi-samsam9395s-projects.vercel.app"
+    ], supports_credentials=True,  methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"])
     
     return app

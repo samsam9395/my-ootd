@@ -56,7 +56,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 			refreshPromiseRef.current = (async () => {
 				try {
-					const data = await refreshAccessToken();
+					const timeoutPromise = new Promise(
+						(_, reject) =>
+							setTimeout(() => reject(new Error("Refresh timeout")), 12000) // If refresh takes more than 12s, abort
+					);
+
+					const data = (await Promise.race([
+						refreshAccessToken(),
+						timeoutPromise,
+					])) as Awaited<ReturnType<typeof refreshAccessToken>>;
 					console.log(
 						"[REFRESH] Got new token:",
 						data.access_token.slice(0, 10) + "..."
@@ -88,10 +96,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		},
 		[router]
 	);
+
 	// Initial hydration on mount
 	useEffect(() => {
-		rehydrate();
-	}, []);
+		// Add safety timeout in case rehydrate never completes
+		const safetyTimeout = setTimeout(() => {
+			if (!hasCheckedRefresh) {
+				console.warn("[SAFETY] Force-setting hasCheckedRefresh after 12s");
+				setHasCheckedRefresh(true);
+			}
+		}, 12000);
+
+		rehydrate().catch((err) => {
+			console.error("[MOUNT] Rehydrate failed:", err);
+			// Ensure loader is removed even if rehydrate fails catastrophically
+			setHasCheckedRefresh(true);
+		});
+
+		return () => clearTimeout(safetyTimeout);
+	}, [rehydrate]);
 
 	useEffect(() => {
 		// Set the global 401 handler once
@@ -104,7 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			// Clean up on unmount
 			apiClient.setOnUnauthorized(async (url: string) => Promise.resolve());
 		};
-	}, []);
+	}, [rehydrate]);
 
 	// Sync token with apiClient whenever it changes
 	useEffect(() => {
