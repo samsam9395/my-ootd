@@ -1,4 +1,4 @@
-from flask import Flask, app
+from flask import Flask, request
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
@@ -28,8 +28,19 @@ def create_app():
     # Allow all routes from localhost:3000 (dev only)
     CORS(app, origins=[
         "http://localhost:3000",
-        "https://my-ootd-281zw9iyi-samsam9395s-projects.vercel.app"
+        "https://my-ootd-samsam9395s-projects.vercel.app",
     ], supports_credentials=True,  methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"])
+    
+    # --- ✅ Dynamic CORS for vercel preview URLs ---
+    @app.after_request
+    def apply_cors(response):
+        origin = request.headers.get("Origin")
+        if origin and origin.endswith(".vercel.app"):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Vary"] = "Origin"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
+    # ---------------------------------------------
     
     return app
