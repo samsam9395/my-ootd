@@ -7,10 +7,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeClosed } from "lucide-react";
 import { login, LoginPayload } from "@/utils/api/auth";
 import Image from "next/image";
+import { useLoader } from "@/contexts/FullLoaderContext";
 
 function LoginPage() {
 	const router = useRouter();
 	const { setUser, setAccessToken } = useAuth();
+	const { showLoader, hideLoader } = useLoader();
+
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +23,7 @@ function LoginPage() {
 		e.preventDefault();
 
 		setError(null);
-
+		showLoader();
 		try {
 			const data = await login({ email, password } as LoginPayload);
 			setAccessToken(data.access_token);
@@ -29,6 +32,8 @@ function LoginPage() {
 		} catch (err: any) {
 			console.error("Login error:", err);
 			setError(err.message);
+		} finally {
+			hideLoader();
 		}
 	};
 

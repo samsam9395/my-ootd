@@ -7,6 +7,7 @@ import { useAlert } from "@/contexts/AlertContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { signup, SignupPayload } from "@/utils/api/auth";
 import Image from "next/image";
+import { useLoader } from "@/contexts/FullLoaderContext";
 
 export default function SignupPage() {
 	const router = useRouter();
@@ -17,6 +18,7 @@ export default function SignupPage() {
 	const [pwdNotMeetRec, setPwdNotMeetRec] = useState(false);
 	const { showAlert } = useAlert();
 	const { setUser, setAccessToken } = useAuth();
+	const { showLoader, hideLoader } = useLoader();
 
 	const handleSignup = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -42,7 +44,7 @@ export default function SignupPage() {
 		} else {
 			setPwdNotMeetRec(false);
 		}
-
+		showLoader();
 		try {
 			const data = await signup({ email, username, password } as SignupPayload);
 			showAlert("Signup successful! Please sign in.", "success");
@@ -52,6 +54,8 @@ export default function SignupPage() {
 		} catch (err: any) {
 			console.error(err);
 			setError(err.message || "Something went wrong. Try again.");
+		} finally {
+			hideLoader();
 		}
 	};
 

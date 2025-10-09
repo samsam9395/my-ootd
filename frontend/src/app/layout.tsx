@@ -5,6 +5,7 @@ import { AlertProvider, useAlert } from "@/contexts/AlertContext";
 import { Alert } from "@/components/common/Alert";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Header from "@/components/layout/Header";
+import { LoaderProvider } from "@/contexts/FullLoaderContext";
 const saira = Saira({
 	subsets: ["latin"],
 });
@@ -28,11 +29,13 @@ export default function RootLayout({
 		<html lang="en" className={`${saira.className} h-full bg-white`}>
 			<body className="h-full antialiased">
 				<AlertProvider>
-					<AuthProvider>
-						<Alert />
-						<Header />
-						{children}
-					</AuthProvider>
+					<LoaderProvider>
+						<AuthProvider>
+							<Alert />
+							<Header />
+							{children}
+						</AuthProvider>
+					</LoaderProvider>
 				</AlertProvider>
 			</body>
 		</html>

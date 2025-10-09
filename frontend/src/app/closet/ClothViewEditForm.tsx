@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { clothingTypes } from "./Gallery";
 import { StyleTag, UpdateClothPayload } from "@/types";
 import { useAlert } from "@/contexts/AlertContext";
-import FullPageLoader from "@/components/common/fullPageLoader";
+import { useLoader } from "@/contexts/FullLoaderContext";
+
 type ClothViewEditFormProps = {
 	item: any;
 	onClose: () => void;
@@ -28,8 +29,9 @@ export default function ClothViewEditForm({
 	const [newStyles, setNewStyles] = useState<StyleTag[]>([]);
 	const [newStyleInput, setNewStyleInput] = useState("");
 	const [allStylesUI, setAllStylesUI] = useState<StyleTag[]>([]);
-	const [isSaving, setIsSaving] = useState(false);
+
 	const { showAlert } = useAlert();
+	const { showLoader, hideLoader } = useLoader();
 
 	// Add a new style (typed by user)
 	const handleAddNewStyle = () => {
@@ -57,7 +59,7 @@ export default function ClothViewEditForm({
 	};
 
 	const handleSave = async () => {
-		setIsSaving(true); // start loader / disable form
+		showLoader(); // start loader / disable form
 		const savePayload = {
 			clothId: item.id,
 			payload: {
@@ -85,7 +87,7 @@ export default function ClothViewEditForm({
 			showAlert("Failed to save cloth update", "error");
 		} finally {
 			setTimeout(() => {
-				setIsSaving(false); // stop loader / enable form
+				hideLoader(); // stop loader / enable form
 			}, 500);
 		}
 	};
@@ -117,7 +119,6 @@ export default function ClothViewEditForm({
 			}}
 			className="flex flex-col gap-4"
 		>
-			{isSaving && <FullPageLoader />}
 			{/* Name */}
 			<label className="flex flex-col gap-1">
 				<span className="text-sm font-medium">Name</span>

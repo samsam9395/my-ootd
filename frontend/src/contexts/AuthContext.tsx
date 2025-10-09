@@ -9,7 +9,7 @@ import {
 	useCallback,
 	useRef,
 } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { refreshAccessToken } from "@/utils/api/auth";
 import { apiClient } from "@/utils/api/apiClient";
 import FullPageLoader from "@/components/common/fullPageLoader";
