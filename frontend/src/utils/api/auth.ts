@@ -56,7 +56,7 @@ export const login = async ({ email, password }: LoginPayload): Promise<LoginRes
         body: JSON.stringify({ email, password }),
         credentials: "include", // important for refresh_token cookie
     });
-
+    console.log('response from login api:', res);
     if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Login failed");
@@ -77,6 +77,7 @@ export const refreshAccessToken = async (): Promise<{ access_token: string; user
         document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         const data = await res.json().catch(() => ({}));
         const message = (data && typeof data === "object" && "error" in data) ? data.error : "Refresh token failed";
+        console.log('message from refresh token api:', message);
         throw new Error(message);
     }
 

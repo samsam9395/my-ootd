@@ -287,4 +287,117 @@ def delete_cloth_in_db(cloth_id: int) -> bool:
     except Exception as e:
         print(f"Error deleting cloth item: {e}")
         return False
-            
+
+# Fetch selected item and relevant items sharing styles
+def get_relevant_items_by_shared_styles(selected_item_id: int, top_n_per_category: int = 3):
+    """
+    Fetch the selected item and related items that share style tags.
+    Returns:
+        selected_item: dict
+        grouped_shortlist: dict {category: [items]}
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return None, {}
+
+    supabase = get_supabase()
+
+    # Step 1: Fetch selected item
+    selected_resp = (
+        supabase.table("clothes")
+        .select("""
+            id,
+            name,
+            type,
+            colour,
+            category,
+            image_url,
+            clothes_styles (
+                styles (
+                    id,
+                    name
+                )
+            )
+        """)
+        .eq("user_id", user_id)
+        .eq("id", selected_item_id)
+        .single()
+        .execute()
+    )
+    selected_item = selected_resp.data
+    if not selected_item:
+        return None, {}
+    
+    # convert selected_item id
+    selected_item["id"] = int(selected_item["id"])
+    
+    # convert clothes_styles ids
+    for cs in selected_item.get("clothes_styles", []):
+        if cs.get("styles"):
+            cs["styles"]["id"] = int(cs["styles"]["id"])
+
+    # Step 2: Get selected item's style IDs
+    style_ids = [s["styles"]["id"] for s in selected_item.get("clothes_styles", []) if s.get("styles")]
+    if not style_ids:
+        return selected_item, {}
+
+    # Step 3: Get other clothes sharing any of these styles
+    clothes_styles_resp = (
+        supabase.table("clothes_styles")
+        .select("cloth_id, style_id")
+        .in_("style_id", style_ids)
+        .neq("cloth_id", selected_item_id)
+        .execute()
+    )
+
+    # Step 4: Count shared styles per cloth_id
+    shared_count = {}
+    for row in clothes_styles_resp.data:
+        cid = row["cloth_id"]
+        shared_count[cid] = shared_count.get(cid, 0) + 1
+
+    related_clothes_ids = list(shared_count.keys())
+    if not related_clothes_ids:
+        return selected_item, {}
+
+    # Step 5: Fetch full data for related clothes
+    clothes_resp = (
+        supabase.table("clothes")
+        .select("""
+            id,
+            name,
+            type,
+            colour,
+            category,
+            image_url,
+            clothes_styles (
+                styles (
+                    id,
+                    name
+                )
+            )
+        """)
+        .eq("user_id", user_id)
+        .in_("id", related_clothes_ids)
+        .execute()
+    )
+    all_items = clothes_resp.data or []
+
+    # Step 6: Sort by number of shared styles & group by category
+    relevant_style_items = {}
+    for item in sorted(all_items, key=lambda x: shared_count.get(x["id"], 0), reverse=True):
+        cat = item["category"]
+        if cat not in relevant_style_items:
+            relevant_style_items[cat] = []
+        if len(relevant_style_items[cat]) < top_n_per_category:
+            relevant_style_items[cat].append({
+                "id": item["id"],
+                "name": item["name"],
+                "type": item["type"],
+                "colour": item["colour"],
+                "category": item["category"],
+                "styles": [s["styles"]["name"] for s in item.get("clothes_styles", []) if s.get("styles")],
+                "image_url": item["image_url"]
+            })
+
+    return selected_item, relevant_style_items

@@ -13,7 +13,7 @@ def recommend_clothes(selected_item, all_items, top_k=5, model_name="all-MiniLM-
 
     # Prepare text
     def get_text(item):
-        styles = " ".join([cs['styles']['name'] for cs in item.get('clothes_styles', [])])
+        styles = " ".join(item.get('styles', []))
         color = item.get('colour', '')
         return f"{styles} {color} {item.get('description', '')}"
 
@@ -30,46 +30,41 @@ def recommend_clothes(selected_item, all_items, top_k=5, model_name="all-MiniLM-
 
     return recommended_items
 
-# ---------- 1. Prefilter with embeddings ----------
-def prefilter_candidates(selected_item, all_items, top_k=3):
+
+# Prefilter with embeddings 
+def prefilter_candidates(selected_item, all_items_by_category, top_k=3, model_name="all-MiniLM-L6-v2"):
     """
     Select top_k similar items per category using embeddings.
-    selected_item: dict {type, name, colour, styles}
-    all_items: list of dicts
+    selected_item: dict with 'type', 'name', 'colour', 'styles' (list of strings)
+    all_items_by_category: dict {category: [items]}
     """
 
     # Load embedding model once
-    embedder = SentenceTransformer("all-MiniLM-L6-v2")
-    print("selected_item",selected_item)
-   
-    styles_list = [cs['styles']['name'] for cs in selected_item['clothes_styles']]
-    styles_str = ", ".join(styles_list)
-    selected_text = f"{selected_item['type']}: {selected_item['name']}, {selected_item['colour']}, styles: {styles_str}"
+    embedder = SentenceTransformer(model_name)
 
-    print("selected_text",selected_text)
+    # Prepare selected item text
+    selected_styles = ", ".join(selected_item.get("styles", []))
+    selected_text = f"{selected_item['type']}: {selected_item['name']}, {selected_item['colour']}, styles: {selected_styles}"
     selected_emb = embedder.encode(selected_text, convert_to_tensor=True)
 
     shortlist = {}
 
-
-    for category in ["top","bottom", "outerwear", "shoes", "accessory"]:
-        # filter by category
-        candidates = [i for i in all_items if i["type"] == category]
+    for category, candidates in all_items_by_category.items():
         if not candidates:
             continue
 
-        # encode candidates
+        # Encode candidate texts
         texts = []
         for c in candidates:
-            style_names = [cs['styles']['name'] for cs in c.get('clothes_styles', [])]
-            styles_str = ", ".join(style_names)
+            styles_str = ", ".join(c.get("styles", []))
             texts.append(f"{c['type']} (id: {c['id']}): {c['name']}, {c['colour']}, styles: {styles_str}")
-        embeddings = embedder.encode(texts, convert_to_tensor=True)
+        candidate_embs = embedder.encode(texts, convert_to_tensor=True)
 
-        # cosine similarity
-        cos_scores = util.cos_sim(selected_emb, embeddings)[0]
+        # Cosine similarity
+        cos_scores = util.cos_sim(selected_emb, candidate_embs)[0]
         top_indices = torch.topk(cos_scores, k=min(top_k, len(candidates))).indices.tolist()
 
         shortlist[category] = [candidates[i] for i in top_indices]
 
     return shortlist
+   

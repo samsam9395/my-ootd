@@ -21,10 +21,13 @@ def ask_openrouter_for_outfit(shortlist, selected_item):
 
     prompt += (
     "\nInstructions:"
-    "\n- Pick 1 item per category."
+    "\n- Pick 1 item per category from the candidates."
     "\n- If no perfect match, pick the closest."
-    "\n- Return outfit in 'category: id' format for all given categories."
-    "\n- After the outfit, add ONE short phrase describing the outfit’s overall style as: " "Style Phrase: (e.g., \"casual chic\", \"spring clean-fit\", \"all-white chic\")."
+    "\n- Return the outfit in JSON format as a single object with keys for each category and additional keys: 'style_phrase' and 'style_flair'."
+    "\n- After the outfit, add ONE short phrase describing the outfit’s overall style as: " "style_phrase: (e.g., \"casual chic\", \"spring clean-fit\", \"all-white chic\")."
+    "\n- Then add ONE sentence about the vibe or occasion for this outfit as: " "style_flair: (e.g., \"Perfect for a casual city brunch.\")."
+    "\n- Example output format:\n"
+    '{"shoes": 7, "dress": 41, "bottom": 4, "accessory": 15, "style_phrase": "formal minimalist", "style_flair": "Perfect for a casual city brunch with friends."}'
     "\n- Do NOT invent categories."
     "\n- Do NOT explain or justify your choices."
     )
@@ -43,5 +46,5 @@ def ask_openrouter_for_outfit(shortlist, selected_item):
         })
     )
     res_json = response.json()
-    # print("AI response:", res_json)
+    # print("AI response:", res_json["choices"][0]["message"]["content"])
     return res_json["choices"][0]["message"]["content"]

@@ -24,5 +24,4 @@
 
 ## Recommendations (service endpoints)
 
-- `POST /api/recommendations/cosine` → Cosine similarity recommendations
 - `POST /api/recommendations/ai` → AI outfit recommendations

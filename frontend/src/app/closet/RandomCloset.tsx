@@ -16,6 +16,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 	const [modalItem, setModalItem] = useState<ClothItem | null>(null);
 	const [recIsLoading, setRecIsLoading] = useState(false);
 	const [imgLoaded, setImgLoaded] = useState(false);
+
 	const total = randomItemsArr?.length;
 
 	const selectedItem =
@@ -52,9 +53,11 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 		setRecIsLoading(true);
 		try {
 			const itemId = selectedClothItem.id;
-			const normalizedRecs = await fetchRecommendations(itemId);
-			console.log("Normalized recommendations:", normalizedRecs);
-			setRecResponse(normalizedRecs);
+			// const normalizedRecs = await fetchRecommendations(itemId);
+			const aiRecs = await fetchRecommendations(itemId);
+			// console.log("Normalized recommendations:", normalizedRecs);
+
+			setRecResponse(aiRecs);
 		} catch (error) {
 			console.error("Error fetching recommendations:", error);
 			setRecResponse(null);
@@ -135,31 +138,44 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 								{selectedItem.name}
 								{'"'}
 							</h3>
-							<div className="text-sm text-gray-500 mb-4">
-								Theme: <em>{recResponse?._style_phrase}</em>
+							<div className="space-y-1 text-sm">
+								{recResponse?._style_phrase && (
+									<div className="text-gray-700 font-semibold">
+										Theme:{" "}
+										<span className="font-normal italic text-gray-600">
+											{recResponse?._style_phrase}
+										</span>
+									</div>
+								)}
+								{recResponse?._style_flair && (
+									<div className="text-gray-700 font-semibold">
+										The Edit:{" "}
+										<span className="font-normal italic text-gray-600">
+											{recResponse?._style_flair}
+										</span>
+									</div>
+								)}
 							</div>
-							<div className="flex gap-3 overflow-x-auto">
-								{recResponse.items
-									.filter(({ item }) => item && item.id) // safety filter
-									.map(({ item }) => (
-										<div
-											key={item.id}
-											className="min-w-[120px] flex-shrink-0 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform cursor-pointer"
-											onClick={() => setModalItem(item)}
-										>
-											<Image
-												width={120}
-												height={120}
-												src={item.image_url}
-												alt={item?.name}
-												className="w-full h-32 object-cover"
-											/>
-											<div className="p-1 text-xs text-gray-700">
-												<p className="truncate">{item?.name}</p>
-												<p className="text-gray-400">{item?.type}</p>
-											</div>
+							<div className="flex gap-4 overflow-x-auto mt-5 px-2 py-2">
+								{recResponse?.items.map((item) => (
+									<div
+										key={item.id}
+										className="min-w-[120px] max-w-[180px] flex-shrink-0 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform cursor-pointer"
+										onClick={() => setModalItem(item)}
+									>
+										<Image
+											width={180}
+											height={180}
+											src={item.image_url}
+											alt={item?.name}
+											className="w-full h-32 object-cover"
+										/>
+										<div className="p-1 text-xs text-gray-700">
+											<p className="truncate">{item?.name}</p>
+											<p className="text-gray-400">{item?.type}</p>
 										</div>
-									))}
+									</div>
+								))}
 							</div>
 						</>
 					) : (
@@ -167,6 +183,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 					)}
 				</div>
 			)}
+
 			{/* Modal for large image */}
 			{modalItem && (
 				<div
@@ -203,9 +220,11 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 						<h3 className="font-bold text-lg">{modalItem?.name}</h3>
 						<p className="text-gray-500">{modalItem?.type}</p>
 						<p className="text-gray-400 text-sm">{modalItem?.colour}</p>
-						<div className="flex text-gray-400 text-sm">
-							{modalItem?.styles.map((s) => s.name).join(", ")}
-						</div>
+						{modalItem.styles && (
+							<div className="flex text-gray-400 text-sm">
+								Styles: {modalItem.styles.map((s) => s).join(", ")}
+							</div>
+						)}
 					</motion.div>
 				</div>
 			)}

@@ -1,4 +1,4 @@
-import { ClothItem, ClothRecommendationSet, UpdateClothPayload } from "@/types";
+import { UpdateClothPayload } from "@/types";
 import { apiClient } from "@utils/api/apiClient";
 
 
@@ -44,31 +44,10 @@ export const addClothStylesRelation = async (
     return data;
 };
 
-function normalizeRecommendations(recs: any): ClothRecommendationSet | null {
-    if (!recs || recs.length === 0) return null;
-
-
-    return {
-        _style_phrase: recs._style_phrase,
-        items: Object.entries(recs)
-            .filter(([key]) => key !== "_style_phrase")
-            .map(([category, item]) => {
-                const clothItem = item as ClothItem; // assert type here
-                return {
-                    category,
-                    item: {
-                        ...clothItem,
-                        styles: (clothItem.styles || []).map((s: any) => s.styles),
-                    },
-                };
-            })
-            .filter(({ item }) => item && item.id),
-    };
-}
 
 export async function fetchRecommendations(itemId: number) {
     const data = await apiClient.post("/recommendations/ai", { item_id: itemId });
-    return normalizeRecommendations(data);
+    return data;
 }
 
 
