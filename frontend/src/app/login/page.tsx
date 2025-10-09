@@ -83,14 +83,15 @@ function LoginPage() {
 							>
 								Password
 							</label>
-							<div className="text-sm">
+							{/* Will be implemented later */}
+							{/* <div className="text-sm">
 								<a
 									href="#"
 									className="font-semibold text-slate-400 hover:text-blue-400"
 								>
 									Forgot password?
 								</a>
-							</div>
+							</div> */}
 						</div>
 						<div className="mt-2 flex items-center">
 							<input

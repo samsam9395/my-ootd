@@ -59,9 +59,9 @@ export default function SignupPage() {
 		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
 			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
 				<Image
-					width={50}
+					width={200}
 					height={50}
-					alt="My OOTD"
+					alt="OOTD Logo"
 					src={logo.src}
 					className="mx-auto h-50 w-auto"
 				/>

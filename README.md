@@ -13,16 +13,19 @@ A full-stack wardrobe management application that helps users organize their clo
 ## Tech Stack
 
 **Frontend:**
+
 - Next.js (TypeScript)
 - React
 - Tailwind CSS
 
 **Backend:**
+
 - Flask (Python)
 - Supabase (PostgreSQL database)
 - JWT authentication with secure cookies
 
 **AI/ML:**
+
 - NVIDIA Nemotron-Nano-9B-V2 (free) LLM for outfit generation
 - Hugging Face embeddings for semantic similarity matching
 - Cosine similarity prefiltering for improved performance
@@ -36,10 +39,10 @@ A full-stack wardrobe management application that helps users organize their clo
 
 ## Project Status
 
-This is an active development project for portfolio demonstration. 
-
+This is an active development project for portfolio demonstration of fullstack skills.
 
 ## Future Improvements
 
+- Implement password reset and email confirmation flows for improved account security
 - Auto image tagging with AI when users upload items
 - Generate a single image for an outfit set for sharing
