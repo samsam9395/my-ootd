@@ -55,11 +55,11 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 			const itemId = selectedClothItem.id;
 			// const normalizedRecs = await fetchRecommendations(itemId);
 			const aiRecs = await fetchRecommendations(itemId);
-			// console.log("Normalized recommendations:", normalizedRecs);
+			// console.log("Normalized recResponse:", normalizedRecs);
 
 			setRecResponse(aiRecs);
 		} catch (error) {
-			console.error("Error fetching recommendations:", error);
+			console.error("Error fetching recResponse:", error);
 			setRecResponse(null);
 		} finally {
 			setRecIsLoading(false);
@@ -138,20 +138,20 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 								{selectedItem.name}
 								{'"'}
 							</h3>
-							<div className="space-y-1 text-sm">
+							<div className="space-y-0.8 text-sm">
 								{recResponse?._style_phrase && (
-									<div className="text-gray-700 font-semibold">
-										Theme:{" "}
+									<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
+										<div className="text-gray-700 font-semibold">Theme:</div>
 										<span className="font-normal italic text-gray-600">
-											{recResponse?._style_phrase}
+											{recResponse._style_phrase}
 										</span>
 									</div>
 								)}
 								{recResponse?._style_flair && (
-									<div className="text-gray-700 font-semibold">
-										The Edit:{" "}
+									<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
+										<div className="text-gray-700 font-semibold">The Edit:</div>
 										<span className="font-normal italic text-gray-600">
-											{recResponse?._style_flair}
+											{recResponse._style_flair}
 										</span>
 									</div>
 								)}

@@ -1,4 +1,4 @@
-import { UpdateClothPayload } from "@/types";
+
 import { apiClient } from "@utils/api/apiClient";
 
 
@@ -15,34 +15,12 @@ export const getStyleTags = async () => {
     return apiClient.get("/clothes/style-tags"); // automatically sends bearer token if set
 }
 
-export const addStyleTags = async (names: string[]) => {
-    const data = await apiClient.post("/clothes/style-tags", { names });
-    return data;
-};
-
 export const getRandomClothes = async () => {
     const data = await apiClient.get("/clothes/random");
     return data
 }
 
-export const addCloth = async (payload: {
-    name: string;
-    type: string;
-    category: string;
-    colour: string;
-    image_url: string;
-}) => {
 
-    const data = await apiClient.post("/clothes", payload);
-    return data;
-};
-
-export const addClothStylesRelation = async (
-    clothStylesPayload: { cloth_id: number; style_id: number }[]
-) => {
-    const data = await apiClient.post("/clothes/cloth_styles", clothStylesPayload);
-    return data;
-};
 
 
 export async function fetchRecommendations(itemId: number) {
@@ -51,10 +29,6 @@ export async function fetchRecommendations(itemId: number) {
 }
 
 
-export const updateCloth = async (updatePayload: { clothId: number; payload: UpdateClothPayload }) => {
-    const data = await apiClient.put(`/clothes/${updatePayload.clothId}`, updatePayload.payload);
-    return data;
-}
 
 export const updateClothImage = async (clothId: number, imageUrl: string) => {
     const data = await apiClient.put(`/clothes/${clothId}/image`, { image_url: imageUrl })
@@ -67,7 +41,7 @@ export const deleteCloth = async (clothId: number) => {
     return data;
 }
 
-export const createNewCloth = async (payload: any) => {
+export const addUpdateCloth = async (payload: any) => {
     const data = await apiClient.post("/clothes/embedded", payload);
     return data;
 }

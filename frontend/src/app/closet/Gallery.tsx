@@ -2,12 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { AddUpdateClothPayload, StyleTag, UpdateClothPayload } from "@/types";
-import {
-	deleteCloth,
-	getPageClothesByType,
-	updateCloth,
-} from "@/utils/api/clothes";
+import { AddUpdateClothPayload, StyleTag } from "@/types";
+import { deleteCloth, getPageClothesByType } from "@/utils/api/clothes";
 import { useAlert } from "@/contexts/AlertContext";
 import FullPageLoader from "@/components/common/fullPageLoader";
 import Image from "next/image";
@@ -126,15 +122,8 @@ export default function Gallery({
 		};
 	}, [isLoading, hasMore]);
 
-	const handleSaveItemUpdate = async (
-		updatePayload: AddUpdateClothPayload
-		// {
-		// clothId: number;
-		// payload: UpdateClothPayload;
-		// }
-	) => {
+	const handleSaveItemUpdate = async (updatePayload: AddUpdateClothPayload) => {
 		// Refresh the item in the gallery after save
-		// const res = await updateCloth(updatePayload); // your API call
 		const res = await await apiClient.post("/clothes/embedded", updatePayload);
 		if (res.success) {
 			return res; // resolved promise, success

@@ -3,19 +3,12 @@ import { useState, useEffect, FormEvent } from "react";
 import { supabase } from "@/utils/supabase/client";
 import FullPageLoader from "@/components/common/fullPageLoader";
 import { useAlert } from "@/contexts/AlertContext";
-import {
-	addCloth,
-	addClothStylesRelation,
-	addStyleTags,
-	updateClothImage,
-	createNewCloth,
-} from "@/utils/api/clothes";
+import { updateClothImage, addUpdateCloth } from "@/utils/api/clothes";
 import { AddUpdateClothPayload, StyleTag } from "@/types";
 import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
-import { apiClient } from "@/utils/api/apiClient";
 
 interface Cloth {
 	id?: string;
@@ -127,17 +120,7 @@ export default function AddClothForm({
 				styles: stylesPayload,
 			};
 			console.log("clothPayload:", clothPayload);
-			const clothResp = await apiClient.post("/clothes/embedded", clothPayload);
-			// const clothResp = await fetch("/api/clothes/insert", {
-			// 	method: "POST",
-			// 	headers: { "Content-Type": "application/json" },
-			// 	body: JSON.stringify({
-			// 		name,
-			// 		type,
-			// 		colour,
-			// 		styles: stylesPayload,
-			// 	}),
-			// }).then((r) => r.json());
+			const clothResp = await addUpdateCloth(clothPayload);
 
 			if (!clothResp) {
 				console.log("clothResp is null");
@@ -161,71 +144,6 @@ export default function AddClothForm({
 			handleClose();
 		} catch (error) {
 			console.error(error);
-			showAlert("Network error. Try again later.", "error");
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-
-		if (!image) {
-			showAlert("Please select an image", "error");
-			return;
-		}
-		setLoading(true);
-
-		//For cleanup in case of failure
-		let newCloth: any = null;
-		try {
-			//1. Save new styles to DB
-			let savedNewStyles: StyleTag[] = []; // newly created in DB, store real ids
-			if (newStyles.length > 0) {
-				savedNewStyles = await addStyleTags(newStyles.map((s) => s.name));
-			}
-
-			// 2. Save cloth item to DB (without image_url yet)
-			newCloth = await addCloth({
-				name,
-				type,
-				category: clothingTypes.find((ct) => ct.type === type)?.category ?? "",
-				colour,
-				image_url: "", // temporary empty
-			});
-
-			// 3. Build junction table payload
-			const styleIds: number[] = [
-				...selectedStyles.filter((s) => s.id).map((s) => Number(s.id)),
-				...savedNewStyles.filter((s) => s.id).map((s) => Number(s.id)),
-			];
-
-			const clothStylesPayload = styleIds.map((styleId) => ({
-				cloth_id: Number(newCloth.id),
-				style_id: styleId,
-			}));
-
-			await addClothStylesRelation(clothStylesPayload);
-
-			// 5. Upload image to Supabase
-
-			const shortUserId = user!.id.split("-")[0]; // first block of UUID
-			const publicUrl = await uploadImageToSupabase(
-				image,
-				newCloth.id,
-				shortUserId
-			);
-
-			if (!publicUrl) {
-				throw new Error("Image upload failed");
-			}
-
-			// 6. Update cloth item with image_url
-			await updateClothImage(newCloth.id, publicUrl);
-
-			showAlert("Cloth added successfully!", "success");
-			handleClose();
-		} catch (error) {
 			showAlert("Network error. Try again later.", "error");
 		} finally {
 			setLoading(false);

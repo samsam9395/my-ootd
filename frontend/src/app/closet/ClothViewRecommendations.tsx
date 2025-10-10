@@ -1,5 +1,5 @@
 import Loader from "@/components/common/loader";
-import { ClothRecommendationSet } from "@/types";
+import { ClothItem, ClothRecommendationSet } from "@/types";
 import Image from "next/image";
 
 type ClothViewRecommendationsProps = {
@@ -15,9 +15,7 @@ function ClothViewRecommendations({
 	hasTriedAISuggestions,
 	onFetchRecommendations,
 }: ClothViewRecommendationsProps) {
-	{
-		/* Recommendations + Button */
-	}
+	console.log("recommendations:", recommendations);
 	return (
 		<div className="flex-1 flex flex-col gap-4 w-full max-w-3xl mx-auto md:overflow-y-auto mt-4 md:mt-0">
 			{/* Generate button */}
@@ -44,28 +42,44 @@ function ClothViewRecommendations({
 			{recommendations && !isLoadingRecs && (
 				<div className="flex flex-col gap-4 mt-6">
 					<div className="border border-gray-200 rounded-lg p-2 flex flex-col gap-2">
-						{recommendations._style_phrase && (
-							<div className="text-gray-700 italic text-md mb-2">
-								Recommend theme: {recommendations._style_phrase}
-							</div>
-						)}
-						{recommendations.items
-							.filter(({ item }) => item && item.id)
-							.map(({ category, item }) => (
-								<div key={item.id} className="flex flex-row items-center gap-2">
-									<Image
-										width={112}
-										height={112}
-										src={item.image_url}
-										alt={item.name}
-										className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg"
-									/>
-									<div className="flex flex-col text-sm">
-										<span className="font-semibold">{item.name}</span>
-										<span className="text-gray-500">{category}</span>
-									</div>
+						<div className="space-y-0.5 text-sm">
+							{recommendations?._style_phrase && (
+								<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
+									<div className="text-gray-700 font-semibold">Theme:</div>
+									<span className="font-normal italic text-gray-600">
+										{recommendations._style_phrase}
+									</span>
 								</div>
-							))}
+							)}
+							{recommendations?._style_flair && (
+								<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
+									<div className="text-gray-700 font-semibold">The Edit:</div>
+									<span className="font-normal italic text-gray-600">
+										{recommendations._style_flair}
+									</span>
+								</div>
+							)}
+						</div>
+						{recommendations.items.map((item: ClothItem) => (
+							<div key={item.id} className="flex flex-row items-center gap-2 ">
+								<div className="w-32 flex-shrink-0 md:w-36">
+									<Image
+										width={150}
+										height={150}
+										src={item?.image_url}
+										alt={item?.name}
+										className="w-full h-full object-cover rounded-lg aspect-square"
+									/>
+								</div>
+
+								<div className="flex flex-col text-sm min-w-0">
+									<span className="font-semibold truncate">{item?.name}</span>
+									<span className="text-gray-500 truncate">
+										{item?.category}
+									</span>
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 			)}

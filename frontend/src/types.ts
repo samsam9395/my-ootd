@@ -24,13 +24,6 @@ export type ClothItem = {
     styles: ClothStyle[];
 };
 
-export type UpdateClothPayload = {
-    name?: string;
-    type?: string;
-    colour?: string;
-    styles?: { id: string; name: string }[];
-    image_url?: string; // optional
-}
 export type AddUpdateClothPayload = {
     id?: number;
     name: string;

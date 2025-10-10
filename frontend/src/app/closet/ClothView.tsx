@@ -5,7 +5,6 @@ import {
 	ClothItem,
 	ClothRecommendationSet,
 	StyleTag,
-	UpdateClothPayload,
 } from "@/types";
 import { fetchRecommendations } from "@/utils/api/clothes";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,10 +20,6 @@ type ClothViewProps = {
 	item: ClothItem | null;
 	onClose: () => void;
 	onSave: (payload: AddUpdateClothPayload) => Promise<any>;
-	// onSave: (payload: {
-	// 	clothId: number;
-	// 	payload: UpdateClothPayload;
-	// }) => Promise<any>;
 	onDelete: () => void;
 };
 

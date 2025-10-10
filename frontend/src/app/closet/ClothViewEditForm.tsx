@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { clothingTypes } from "./Gallery";
-import { AddUpdateClothPayload, StyleTag, UpdateClothPayload } from "@/types";
+import { AddUpdateClothPayload, StyleTag } from "@/types";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLoader } from "@/contexts/FullLoaderContext";
 
@@ -8,10 +8,6 @@ type ClothViewEditFormProps = {
 	item: any;
 	onClose: () => void;
 	onSave: (payload: AddUpdateClothPayload) => Promise<any>;
-	// onSave: (payload: {
-	// 	clothId: number;
-	// 	payload: UpdateClothPayload;
-	// }) => Promise<any>;
 	onDelete: (id: number) => void;
 	dbTagStyles: StyleTag[];
 };
@@ -40,7 +36,7 @@ export default function ClothViewEditForm({
 
 		// Avoid duplicates in selectedStyles
 		if (!selectedStyles.some((s) => s.name === newStyleInput)) {
-			const fakeStyle: StyleTag = { id: "", name: newStyleInput }; // fake id, DB will assign real id
+			const fakeStyle: StyleTag = { id: "", name: newStyleInput }; // no id, DB will assign real id
 			setSelectedStyles([...selectedStyles, fakeStyle]);
 			setNewStyles([...newStyles, fakeStyle]);
 
@@ -60,16 +56,7 @@ export default function ClothViewEditForm({
 	};
 
 	const handleSave = async () => {
-		showLoader(); // start loader / disable form
-		// const savePayload = {
-		// 	clothId: item.id,
-		// 	payload: {
-		// 		name,
-		// 		colour,
-		// 		type,
-		// 		styles: selectedStyles,
-		// 	},
-		// };
+		showLoader();
 
 		const updatePayload: AddUpdateClothPayload = {
 			id: item.id,
@@ -96,7 +83,7 @@ export default function ClothViewEditForm({
 			showAlert("Failed to save cloth update", "error");
 		} finally {
 			setTimeout(() => {
-				hideLoader(); // stop loader / enable form
+				hideLoader();
 			}, 500);
 		}
 	};
