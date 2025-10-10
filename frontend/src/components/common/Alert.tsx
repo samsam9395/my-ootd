@@ -7,7 +7,7 @@ export const Alert = () => {
 	if (!alert) return null;
 
 	return (
-		<div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+		<div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-60 pointer-events-none">
 			<div
 				className={`pointer-events-auto flex items-center space-x-3 px-4 py-2 rounded-full shadow-lg backdrop-blur-sm bg-white/80 text-black transition-all duration-300 ease-in-out`}
 			>

@@ -4,25 +4,18 @@ import { supabase } from "@/utils/supabase/client";
 import FullPageLoader from "@/components/common/fullPageLoader";
 import { useAlert } from "@/contexts/AlertContext";
 import { updateClothImage, addUpdateCloth } from "@/utils/api/clothes";
-import { AddUpdateClothPayload, StyleTag } from "@/types";
+import { AddUpdateClothPayload, ClothItem, StyleTag } from "@/types";
 import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 
-interface Cloth {
-	id?: string;
-	name: string;
-	colour: string;
-	imageUrl?: string;
-	styles?: string[];
-}
-
 interface AddClothFormProps {
 	isOpen: boolean;
 	onClose: () => void;
-	existingCloth?: Cloth;
+	existingCloth?: ClothItem | null;
 	dbTagStyles?: StyleTag[];
+	onAddCloth?: (newCloth: ClothItem) => void;
 }
 
 export default function AddClothForm({
@@ -30,6 +23,7 @@ export default function AddClothForm({
 	onClose,
 	existingCloth,
 	dbTagStyles = [], // styles already in DB
+	onAddCloth,
 }: AddClothFormProps) {
 	const { user } = useAuth();
 	const [name, setName] = useState(existingCloth?.name || "");
@@ -139,6 +133,10 @@ export default function AddClothForm({
 
 			// 4. Update cloth with image_url
 			await updateClothImage(clothId, publicUrl);
+
+			// 5. Add new item to local state if it matches current category
+			const fullCloth = { ...clothResp.cloth, image_url: publicUrl };
+			onAddCloth?.(fullCloth);
 
 			showAlert("Cloth added successfully!", "success");
 			handleClose();

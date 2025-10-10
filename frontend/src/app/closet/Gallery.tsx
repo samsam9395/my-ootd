@@ -2,12 +2,17 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { AddUpdateClothPayload, StyleTag } from "@/types";
-import { deleteCloth, getPageClothesByType } from "@/utils/api/clothes";
+import { AddUpdateClothPayload, ClothItem, StyleTag } from "@/types";
+import {
+	addUpdateCloth,
+	deleteCloth,
+	getPageClothesByType,
+} from "@/utils/api/clothes";
 import { useAlert } from "@/contexts/AlertContext";
 import FullPageLoader from "@/components/common/fullPageLoader";
 import Image from "next/image";
 import { apiClient } from "@/utils/api/apiClient";
+import { useLoader } from "@/contexts/FullLoaderContext";
 
 const ITEM_LIMIT = 3;
 
@@ -23,15 +28,23 @@ export const clothingTypes = [
 	{ type: "accessory", category: "accessory" },
 ];
 
-type GalleryProps = { selectedCategory: string; dbTagStyles?: StyleTag[] };
+type GalleryProps = {
+	selectedCategory: string;
+	dbTagStyles?: StyleTag[];
+	newCloth?: ClothItem | null;
+	onNewClothHandled?: () => void;
+};
 
 export default function Gallery({
 	selectedCategory,
 	dbTagStyles,
+	newCloth,
+	onNewClothHandled,
 }: GalleryProps) {
 	const loaderRef = useRef<HTMLDivElement>(null);
 	const { showAlert } = useAlert();
 
+	const { showLoader, hideLoader } = useLoader();
 	const [fetchItems, setFetchItems] = useState<any[]>([]);
 	const [page, setPage] = useState(0);
 	const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +53,6 @@ export default function Gallery({
 	const [selectedClothIndex, setSelectedClothIndex] = useState<number | null>(
 		null
 	);
-	const [isDeleting, setIsDeleting] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -124,11 +136,47 @@ export default function Gallery({
 
 	const handleSaveItemUpdate = async (updatePayload: AddUpdateClothPayload) => {
 		// Refresh the item in the gallery after save
-		const res = await await apiClient.post("/clothes/embedded", updatePayload);
-		if (res.success) {
-			return res; // resolved promise, success
-		} else {
-			showAlert(`Failed to update cloth. ${res.message}`, "error");
+		showLoader();
+		try {
+			const savedItem = await addUpdateCloth(updatePayload);
+			if (!savedItem) throw new Error("No data returned from server");
+
+			setFetchItems((prevItems) => {
+				const existingIndex = prevItems.findIndex(
+					(item) => item.id === savedItem.id
+				);
+
+				// If the cloth already exists in local list (update)
+				if (existingIndex !== -1) {
+					const oldItem = prevItems[existingIndex];
+
+					// Case 1: category changed → remove from current list
+					if (oldItem.type !== savedItem.type && selectedCategory !== "all") {
+						const filtered = prevItems.filter((i) => i.id !== savedItem.id);
+						return filtered;
+					}
+
+					// Case 2: same category → update in place
+					const updated = [...prevItems];
+					updated[existingIndex] = savedItem;
+					return updated;
+				}
+
+				// 🆕 New cloth (user created a new one in modal)
+				if (savedItem.type === selectedCategory || selectedCategory === "all") {
+					return [savedItem, ...prevItems];
+				}
+
+				// Otherwise ignore (belongs to another category)
+				return prevItems;
+			});
+
+			showAlert("Cloth updated successfully!", "success");
+		} catch (error) {
+			console.error("Error saving cloth:", error);
+			showAlert(`Failed to save cloth: ${error}`, "error");
+		} finally {
+			hideLoader();
 		}
 	};
 	const handleDeleteItem = async () => {
@@ -141,8 +189,8 @@ export default function Gallery({
 		);
 
 		if (!confirmDelete) return;
+		showLoader();
 		try {
-			setIsDeleting(true);
 			const res = await deleteCloth(itemToDelete.id);
 			console.log("deletion res:", res);
 			if (res) {
@@ -162,12 +210,22 @@ export default function Gallery({
 			console.error("Error deleting item:", error);
 			showAlert(`Failed to delete cloth: ${error || "Unknown error"}`, "error");
 		} finally {
-			setIsDeleting(false);
+			hideLoader();
 		}
 	};
+
+	useEffect(() => {
+		console.log("in Gallery, newCloth:", newCloth);
+		if (newCloth) {
+			// only add if same category
+			if (newCloth.category === selectedCategory) {
+				setFetchItems((prev) => [...prev, newCloth]);
+			}
+			onNewClothHandled?.();
+		}
+	}, [newCloth]);
 	return (
 		<>
-			{isDeleting && <FullPageLoader />}
 			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 				{fetchItems.map((item, index) => (
 					<div

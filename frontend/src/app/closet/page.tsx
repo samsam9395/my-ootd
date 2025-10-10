@@ -5,7 +5,7 @@ import { useEffect, useState, Suspense } from "react";
 import RandomCloset from "./RandomCloset";
 import Gallery from "./Gallery";
 import AddClothForm from "./AddClothForm";
-import { StyleTag } from "@/types";
+import { ClothItem, StyleTag } from "@/types";
 import { getRandomClothes, getStyleTags } from "@/utils/api/clothes";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -27,6 +27,7 @@ function ClosetContent() {
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [dbTagStyles, setDbTagStyles] = useState<StyleTag[]>([]);
 	const [randomItemsArr, setRandomItemsArr] = useState([]);
+	const [newCloth, setNewCloth] = useState<ClothItem | null>(null);
 
 	function handleCategoryChange(category: string) {
 		if (category === selectedCategory) return;
@@ -61,6 +62,9 @@ function ClosetContent() {
 				isOpen={isFormOpen}
 				dbTagStyles={dbTagStyles}
 				onClose={() => setIsFormOpen(false)}
+				onAddCloth={(newCloth) => {
+					setNewCloth(newCloth);
+				}}
 			/>
 			{/* Left sidebar */}
 			<aside className="w-48 shrink-0 p-6">
@@ -101,6 +105,8 @@ function ClosetContent() {
 					<Gallery
 						selectedCategory={selectedCategory}
 						dbTagStyles={dbTagStyles}
+						newCloth={newCloth}
+						onNewClothHandled={() => setNewCloth(null)}
 					/>
 				</div>
 			</main>
