@@ -122,15 +122,6 @@ def create_style_tags(names):
         print("Error inserting style tags:", e)
         return None
 
-# Add cloth style relation table
-def insert_cloth_style_relation(cloth_styles):
-    supabase = get_supabase()
-    try:
-        response = supabase.table("clothes_styles").upsert(cloth_styles).execute()
-        return response.data
-    except Exception as e:
-        print("Error inserting cloth styles:", e)
-        return None
 
 # Get random 5 items for Shuffle
 def get_random_items():
@@ -145,48 +136,6 @@ def get_random_items():
         return None
     
 
-
-# Add cloth item
-def insert_cloth(name,type_, category, colour):
-    user_id = get_current_user_id()
-    if not user_id:
-        return None
-    
-    supabase = get_supabase()
-    # Normalize here
-    clean_name = unicodedata.normalize('NFC', name)
-    name = clean_name.strip()
-    type_ = unicodedata.normalize('NFC', type_).strip().lower()
-    category = unicodedata.normalize('NFC', category).strip().lower()
-    colour = unicodedata.normalize('NFC', colour).strip().lower()
-
-    try:
-        # 1. Check if cloth with the same name exists
-        existing = supabase.table("clothes").select("*")\
-            .eq("name", name).eq("user_id", user_id).execute()
-        
-        if existing.data and len(existing.data) > 0:
-            # 2. Update existing row
-            cloth_id = existing.data[0]["id"]
-            response = supabase.table("clothes").update({
-                "type": type_,
-                "category": category,
-                "colour": colour,
-            }).eq("id", cloth_id).execute()
-            return response.data[0]
-        else:
-            # 3. Insert new row
-            response = supabase.table("clothes").insert({
-                "name": name,
-                "type": type_,
-                "category": category,
-                "colour": colour,
-                "user_id": user_id,
-            }).execute()
-            return response.data[0] if response.data else None
-    except Exception as e:
-        print("Error inserting cloth:", e)
-        return None
 
 
     # Update existing cloth item using RPC (transactional)
@@ -493,7 +442,8 @@ def insert_cloth_with_styles_embedding(cloth_data):
                     "category": category,
                     "colour": colour
                 }, returning="representation").execute()
-                cloth_id = cloth_resp["id"]
+                print('cloth_resp when not exist:', cloth_resp)
+                cloth_id = cloth_resp.data[0]["id"]
 
         # 4. Update junction table: remove old links and insert current
         if cloth_id and all_style_ids:

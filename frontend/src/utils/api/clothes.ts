@@ -42,6 +42,6 @@ export const deleteCloth = async (clothId: number) => {
 }
 
 export const addUpdateCloth = async (payload: any) => {
-    const data = await apiClient.post("/clothes/embedded", payload);
+    const data = await apiClient.post("/clothes", payload);
     return data;
 }
