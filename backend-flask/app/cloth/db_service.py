@@ -1,8 +1,22 @@
 from supabase import create_client
 from flask import current_app, g
 import unicodedata
-
+from ..recommendation.embedding_service import generate_embedding
+from ..memory_logger import log_memory
 _supabase = None
+
+TYPE_TO_CATEGORY = {
+    "top": "top",
+    "bottom": "bottom",
+    "sunglass": "accessory",
+    "bag": "accessory",
+    "skirt": "bottom",
+    "jacket": "outerwear",
+    "dress": "dress",
+    "shoes": "shoes",
+    "accessory": "accessory",
+}
+
 
 def get_supabase():
     global _supabase
@@ -80,7 +94,7 @@ def get_all_items():
     except Exception as e:
         print("Error fetching items:", e)
         return None
-   
+
 
 # Fetch all style tags
 def fetch_style_tags():
@@ -401,3 +415,114 @@ def get_relevant_items_by_shared_styles(selected_item_id: int, top_n_per_categor
             })
 
     return selected_item, relevant_style_items
+
+
+def insert_cloth_with_styles_embedding(cloth_data):
+    """
+    Create or update a cloth item along with its styles and embedding.
+    
+    cloth_data: {
+        id?: int,          # optional for update
+        name: str,
+        type: str,
+        colour: str,
+        styles: [{id?: int, name?: str}, ...]  # existing or new styles
+    }
+    """
+    user_id = get_current_user_id()
+    if not user_id:
+        return {"success": False, "error": "Unauthorized"}
+
+    supabase = get_supabase()
+    print('Get data from request:', cloth_data)
+
+    # Normalize inputs
+    name = unicodedata.normalize("NFC", cloth_data["name"]).strip()
+    type_ = unicodedata.normalize("NFC", cloth_data["type"]).strip().lower()
+    category = TYPE_TO_CATEGORY.get(type_, "unknown")
+    colour = unicodedata.normalize("NFC", cloth_data["colour"]).strip().lower()
+    styles_input = cloth_data.get("styles", [])
+    cloth_id = cloth_data.get("id")  # optional
+
+    try:
+        # 1. Separate existing vs new styles
+        existing_style_ids = [s["id"] for s in styles_input if s.get("id")]
+        new_style_names = [s["name"].strip().lower() for s in styles_input if s.get("name") and not s.get("id")]
+
+        # 2. Insert new styles if needed
+        new_style_rows = []
+        if new_style_names:
+            insert_resp = supabase.table("styles").insert([{"name": n} for n in new_style_names]).select("*").execute()
+            new_style_rows = insert_resp.data or []
+
+        all_style_ids = existing_style_ids + [row["id"] for row in new_style_rows]
+        print("All style IDs to link:", all_style_ids)
+
+        # 3. Check if exist cloth item. Insert cloth row (without image_url yet)
+        if cloth_id:
+            # Update existing cloth
+            cloth_resp = supabase.table("clothes").update({
+                "name": name,
+                "type": type_,
+                "category": category,
+                "colour": colour
+            }, returning="representation").eq("id", cloth_id).execute()
+        else:
+            # Check by name/user
+            existing = supabase.table("clothes")\
+                .select("*")\
+                .eq("user_id", user_id)\
+                .eq("name", name).execute()
+            print('found existing:', existing)
+            
+            if existing.data and len(existing.data) > 0:
+                cloth_resp = existing.data[0]
+                cloth_id = cloth_resp["id"]
+                # Update cloth anyway
+                cloth_resp = supabase.table("clothes").update({
+                    "type": type_,
+                    "category": category,
+                    "colour": colour
+                }, returning="representation").eq("id", cloth_id).execute()
+            else:
+                # Insert new
+                cloth_resp = supabase.table("clothes").insert({
+                    "user_id": user_id,
+                    "name": name,
+                    "type": type_,
+                    "category": category,
+                    "colour": colour
+                }, returning="representation").execute()
+                cloth_id = cloth_resp["id"]
+
+        # 4. Update junction table: remove old links and insert current
+        if cloth_id and all_style_ids:
+            supabase.table("clothes_styles").delete().eq("cloth_id", cloth_id).execute()
+            junction_payload = [{"cloth_id": cloth_id, "style_id": sid} for sid in all_style_ids]
+            supabase.table("clothes_styles").insert(junction_payload).execute()
+
+        log_memory("After DB insert/update")
+        # 5. Generate embedding for prefilter
+        styles_text = " ".join([s.get("name", "") for s in styles_input])
+        print('styles_text:', styles_text)
+        embedding_text = f"{name} {colour} {type_} {styles_text}"
+        embedding_vector = generate_embedding(embedding_text)
+        log_memory("After single item embedding generation")
+        
+        # 6. Store embedding in clothes table
+        supabase.table("clothes").update({"embedding": embedding_vector}).eq("id", cloth_id).execute()
+        log_memory("After embedding update in DB")
+
+        # Return to frontend without embedding
+        return {"success": True, "cloth": {
+            "id": cloth_id,
+            "name": name,
+            "type": type_,
+            "category": category,
+            "colour": colour,
+            # no embedding
+        }}
+
+    except Exception as e:
+        print("Error inserting cloth with styles:", e)
+        return {"success": False, "error": str(e)}

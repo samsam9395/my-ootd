@@ -14,6 +14,7 @@ from .db_service import (
     insert_cloth,
     insert_cloth_style_relation,
     get_random_items,
+    insert_cloth_with_styles_embedding,
     update_cloth_in_db,
     delete_cloth_in_db,
     get_clothes_by_type,
@@ -172,3 +173,18 @@ def delete_cloth(id):
     except Exception as e:
 
         return jsonify({"message": "An error occurred while deleting the cloth item", "error": str(e)}), 500
+    
+
+# Create new cloth with embedding
+@bp.route("/embedded", methods=["POST"])
+@token_required
+def insert_cloth_embedded():
+    data = request.json
+    try:
+        result = insert_cloth_with_styles_embedding(data)
+        if not result:
+            return jsonify({"message": "Insert failed"}), 500
+
+        return jsonify(result), 201
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500

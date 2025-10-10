@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { clothingTypes } from "./Gallery";
-import { StyleTag, UpdateClothPayload } from "@/types";
+import { AddUpdateClothPayload, StyleTag, UpdateClothPayload } from "@/types";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLoader } from "@/contexts/FullLoaderContext";
 
 type ClothViewEditFormProps = {
 	item: any;
 	onClose: () => void;
-	onSave: (payload: {
-		clothId: number;
-		payload: UpdateClothPayload;
-	}) => Promise<any>;
+	onSave: (payload: AddUpdateClothPayload) => Promise<any>;
+	// onSave: (payload: {
+	// 	clothId: number;
+	// 	payload: UpdateClothPayload;
+	// }) => Promise<any>;
 	onDelete: (id: number) => void;
 	dbTagStyles: StyleTag[];
 };
@@ -60,18 +61,26 @@ export default function ClothViewEditForm({
 
 	const handleSave = async () => {
 		showLoader(); // start loader / disable form
-		const savePayload = {
-			clothId: item.id,
-			payload: {
-				name,
-				colour,
-				type,
-				styles: selectedStyles,
-			},
+		// const savePayload = {
+		// 	clothId: item.id,
+		// 	payload: {
+		// 		name,
+		// 		colour,
+		// 		type,
+		// 		styles: selectedStyles,
+		// 	},
+		// };
+
+		const updatePayload: AddUpdateClothPayload = {
+			id: item.id,
+			name,
+			colour,
+			type,
+			styles: selectedStyles,
 		};
 
 		try {
-			await onSave(savePayload); // your existing save function
+			await onSave(updatePayload); // your existing save function
 			setColour("");
 			setName("");
 			setType(clothingTypes[0].type);

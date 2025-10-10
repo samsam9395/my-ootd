@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
-import { StyleTag, UpdateClothPayload } from "@/types";
+import { AddUpdateClothPayload, StyleTag, UpdateClothPayload } from "@/types";
 import {
 	deleteCloth,
 	getPageClothesByType,
@@ -11,6 +11,7 @@ import {
 import { useAlert } from "@/contexts/AlertContext";
 import FullPageLoader from "@/components/common/fullPageLoader";
 import Image from "next/image";
+import { apiClient } from "@/utils/api/apiClient";
 
 const ITEM_LIMIT = 3;
 
@@ -125,16 +126,20 @@ export default function Gallery({
 		};
 	}, [isLoading, hasMore]);
 
-	const handleSaveItemUpdate = async (updatePayload: {
-		clothId: number;
-		payload: UpdateClothPayload;
-	}) => {
+	const handleSaveItemUpdate = async (
+		updatePayload: AddUpdateClothPayload
+		// {
+		// clothId: number;
+		// payload: UpdateClothPayload;
+		// }
+	) => {
 		// Refresh the item in the gallery after save
-		const res = await updateCloth(updatePayload); // your API call
+		// const res = await updateCloth(updatePayload); // your API call
+		const res = await await apiClient.post("/clothes/embedded", updatePayload);
 		if (res.success) {
 			return res; // resolved promise, success
 		} else {
-			throw new Error(res.error || "Failed to update"); // rejected promise
+			showAlert(`Failed to update cloth. ${res.message}`, "error");
 		}
 	};
 	const handleDeleteItem = async () => {

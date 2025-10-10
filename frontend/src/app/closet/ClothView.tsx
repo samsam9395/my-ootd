@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	AddUpdateClothPayload,
 	ClothItem,
 	ClothRecommendationSet,
 	StyleTag,
@@ -19,10 +20,11 @@ type ClothViewProps = {
 	isOpen: boolean;
 	item: ClothItem | null;
 	onClose: () => void;
-	onSave: (payload: {
-		clothId: number;
-		payload: UpdateClothPayload;
-	}) => Promise<any>;
+	onSave: (payload: AddUpdateClothPayload) => Promise<any>;
+	// onSave: (payload: {
+	// 	clothId: number;
+	// 	payload: UpdateClothPayload;
+	// }) => Promise<any>;
 	onDelete: () => void;
 };
 

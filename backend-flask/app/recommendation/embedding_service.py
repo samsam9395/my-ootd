@@ -1,46 +1,47 @@
 from sentence_transformers import SentenceTransformer, util
 import torch
 
+EMBEDDING_DIM = 384
+MODEL_NAME = "all-MiniLM-L6-v2"
+embedder = SentenceTransformer(MODEL_NAME)  # load ONCE when module is imported
+
 
 # Recommend clothes
-def recommend_clothes(selected_item, all_items, top_k=5, model_name="all-MiniLM-L6-v2"):
-    model = SentenceTransformer(model_name)
+# def recommend_clothes(selected_item, all_items, top_k=5):
 
-    # Exclude same type
-    candidates = [item for item in all_items if item['type'] != selected_item['type']]
-    if not candidates:
-        return []
+#     # Exclude same type
+#     candidates = [item for item in all_items if item['type'] != selected_item['type']]
+#     if not candidates:
+#         return []
 
-    # Prepare text
-    def get_text(item):
-        styles = " ".join(item.get('styles', []))
-        color = item.get('colour', '')
-        return f"{styles} {color} {item.get('description', '')}"
+#     # Prepare text
+#     def get_text(item):
+#         styles = " ".join(item.get('styles', []))
+#         color = item.get('colour', '')
+#         return f"{styles} {color} {item.get('description', '')}"
 
-    selected_text = get_text(selected_item)
-    selected_emb = model.encode(selected_text, convert_to_tensor=True)
+#     selected_text = get_text(selected_item)
+#     selected_emb = model.encode(selected_text, convert_to_tensor=True)
 
-    candidate_texts = [get_text(item) for item in candidates]
-    candidate_embs = model.encode(candidate_texts, convert_to_tensor=True)
+#     candidate_texts = [get_text(item) for item in candidates]
+#     candidate_embs = model.encode(candidate_texts, convert_to_tensor=True)
 
-    # Cosine similarity
-    cosine_scores = util.cos_sim(selected_emb, candidate_embs)[0]
-    top_results = torch.topk(cosine_scores, k=min(top_k, len(candidates)))
-    recommended_items = [candidates[i] for i in top_results.indices.tolist()]
+#     # Cosine similarity
+#     cosine_scores = util.cos_sim(selected_emb, candidate_embs)[0]
+#     top_results = torch.topk(cosine_scores, k=min(top_k, len(candidates)))
+#     recommended_items = [candidates[i] for i in top_results.indices.tolist()]
 
-    return recommended_items
+#     return recommended_items
 
 
 # Prefilter with embeddings 
-def prefilter_candidates(selected_item, all_items_by_category, top_k=3, model_name="all-MiniLM-L6-v2"):
+def prefilter_candidates(selected_item, all_items_by_category, top_k=3):
     """
     Select top_k similar items per category using embeddings.
     selected_item: dict with 'type', 'name', 'colour', 'styles' (list of strings)
     all_items_by_category: dict {category: [items]}
     """
 
-    # Load embedding model once
-    embedder = SentenceTransformer(model_name)
 
     # Prepare selected item text
     selected_styles = ", ".join(selected_item.get("styles", []))
@@ -68,3 +69,6 @@ def prefilter_candidates(selected_item, all_items_by_category, top_k=3, model_na
 
     return shortlist
    
+   
+def generate_embedding(text):
+    return embedder.encode(text).tolist()  # convert tensor to python list

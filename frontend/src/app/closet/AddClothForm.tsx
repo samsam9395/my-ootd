@@ -8,12 +8,14 @@ import {
 	addClothStylesRelation,
 	addStyleTags,
 	updateClothImage,
+	createNewCloth,
 } from "@/utils/api/clothes";
-import { StyleTag } from "@/types";
+import { AddUpdateClothPayload, StyleTag } from "@/types";
 import { X } from "lucide-react";
 import { clothingTypes } from "./Gallery";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
+import { apiClient } from "@/utils/api/apiClient";
 
 interface Cloth {
 	id?: string;
@@ -100,6 +102,69 @@ export default function AddClothForm({
 		setNewStyles([]);
 		setNewStyleInput("");
 		setImage(null);
+	};
+
+	const handleSubmitEmbedded = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		if (!image) {
+			showAlert("Please select an image", "error");
+			return;
+		}
+		setLoading(true);
+
+		try {
+			// 1. Prepare styles payload: existing + new
+			const stylesPayload = [
+				...selectedStyles.map((s) => ({ id: s.id, name: s.name })),
+				...newStyles.map((s) => ({ name: s.name })),
+			];
+
+			// 2. Insert cloth + styles in backend
+			const clothPayload: AddUpdateClothPayload = {
+				name,
+				type,
+				colour,
+				styles: stylesPayload,
+			};
+			console.log("clothPayload:", clothPayload);
+			const clothResp = await apiClient.post("/clothes/embedded", clothPayload);
+			// const clothResp = await fetch("/api/clothes/insert", {
+			// 	method: "POST",
+			// 	headers: { "Content-Type": "application/json" },
+			// 	body: JSON.stringify({
+			// 		name,
+			// 		type,
+			// 		colour,
+			// 		styles: stylesPayload,
+			// 	}),
+			// }).then((r) => r.json());
+
+			if (!clothResp) {
+				console.log("clothResp is null");
+			}
+
+			const clothId = clothResp.cloth.id;
+
+			// 3. Upload image to Supabase
+			const shortUserId = user!.id.split("-")[0];
+			const publicUrl = await uploadImageToSupabase(
+				image,
+				clothId,
+				shortUserId
+			);
+			if (!publicUrl) throw new Error("Image upload failed");
+
+			// 4. Update cloth with image_url
+			await updateClothImage(clothId, publicUrl);
+
+			showAlert("Cloth added successfully!", "success");
+			handleClose();
+		} catch (error) {
+			console.error(error);
+			showAlert("Network error. Try again later.", "error");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -234,7 +299,7 @@ export default function AddClothForm({
 					<X size={24} />
 				</button>
 				<h2 className="text-xl font-semibold mb-4">Add / Update Closet</h2>
-				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+				<form onSubmit={handleSubmitEmbedded} className="flex flex-col gap-4">
 					{/* Photo Upload */}
 					<label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-black text-gray-500">
 						{image ? (

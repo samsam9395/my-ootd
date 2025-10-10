@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 
 from app.auth.auth_utils import token_required
-from .embedding_service import recommend_clothes, prefilter_candidates
 from .recommendation_service import recommend_outfit
 
 # define the blueprint
