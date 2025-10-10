@@ -8,7 +8,7 @@ _supabase = None
 TYPE_TO_CATEGORY = {
     "top": "top",
     "bottom": "bottom",
-    "sunglass": "accessory",
+    "sunglasses": "accessory",
     "bag": "accessory",
     "skirt": "bottom",
     "jacket": "outerwear",
@@ -410,40 +410,38 @@ def insert_cloth_with_styles_embedding(cloth_data):
         # 3. Check if exist cloth item. Insert cloth row (without image_url yet)
         if cloth_id:
             # Update existing cloth
-            cloth_resp = supabase.table("clothes").update({
+            supabase.table("clothes").update({
                 "name": name,
                 "type": type_,
                 "category": category,
                 "colour": colour
-            }, returning="representation").eq("id", cloth_id).execute()
+            }).eq("id", cloth_id).execute()
         else:
-            # Check by name/user
+            # Check if cloth exists by name/user
             existing = supabase.table("clothes")\
                 .select("*")\
                 .eq("user_id", user_id)\
-                .eq("name", name).execute()
-            print('found existing:', existing)
+                .eq("name", name)\
+                .execute()
             
             if existing.data and len(existing.data) > 0:
-                cloth_resp = existing.data[0]
-                cloth_id = cloth_resp["id"]
-                # Update cloth anyway
-                cloth_resp = supabase.table("clothes").update({
+                # Cloth already exists, update it
+                cloth_id = existing.data[0]["id"]
+                supabase.table("clothes").update({
                     "type": type_,
                     "category": category,
                     "colour": colour
-                }, returning="representation").eq("id", cloth_id).execute()
+                }).eq("id", cloth_id).execute()
             else:
-                # Insert new
-                cloth_resp = supabase.table("clothes").insert({
+                # Insert new cloth
+                insert_resp = supabase.table("clothes").insert({
                     "user_id": user_id,
                     "name": name,
                     "type": type_,
                     "category": category,
                     "colour": colour
                 }, returning="representation").execute()
-                print('cloth_resp when not exist:', cloth_resp)
-                cloth_id = cloth_resp.data[0]["id"]
+                cloth_id = insert_resp.data[0]["id"]
 
         # 4. Update junction table: remove old links and insert current
         if cloth_id and all_style_ids:
@@ -462,16 +460,51 @@ def insert_cloth_with_styles_embedding(cloth_data):
         # 6. Store embedding in clothes table
         supabase.table("clothes").update({"embedding": embedding_vector}).eq("id", cloth_id).execute()
         log_memory("After embedding update in DB")
+        
+        # 7. Re-fetch the full cloth row with image_url + styles
+        print('user_id:', user_id, 'cloth_id:', cloth_id)
+        final_resp = (
+            supabase.table("clothes")
+            .select("""
+                id,
+                name,
+                type,
+                colour,
+                category,
+                image_url,
+                clothes_styles (
+                    styles (
+                        id,
+                        name
+                    )
+                )
+            """)
+            .eq("user_id", user_id)
+            .eq("id", cloth_id)
+            .execute()
+        )
+        print('final_resp:', final_resp)
+        row = final_resp.data[0] if final_resp.data else None
 
+        if row:
+            cloth_data = {
+                "id": row["id"],
+                "name": row["name"],
+                "type": row["type"],
+                "colour": row["colour"],
+                "category": row["category"],
+                "image_url": row["image_url"],
+                "styles": [
+                    cs["styles"]["name"] for cs in row.get("clothes_styles", []) if cs.get("styles")
+                ]
+            }
+        else:
+            cloth_data = None
+            
         # Return to frontend without embedding
-        return {"success": True, "cloth": {
-            "id": cloth_id,
-            "name": name,
-            "type": type_,
-            "category": category,
-            "colour": colour,
-            # no embedding
-        }}
+        if not cloth_data:
+            return {"success": False, "error": "Failed to fetch saved cloth"}
+        return {"success": True, "cloth": cloth_data}
 
     except Exception as e:
         print("Error inserting cloth with styles:", e)

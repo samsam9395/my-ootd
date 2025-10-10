@@ -9,9 +9,7 @@ import {
 	getPageClothesByType,
 } from "@/utils/api/clothes";
 import { useAlert } from "@/contexts/AlertContext";
-import FullPageLoader from "@/components/common/fullPageLoader";
 import Image from "next/image";
-import { apiClient } from "@/utils/api/apiClient";
 import { useLoader } from "@/contexts/FullLoaderContext";
 
 const ITEM_LIMIT = 3;
@@ -19,7 +17,7 @@ const ITEM_LIMIT = 3;
 export const clothingTypes = [
 	{ type: "top", category: "top" },
 	{ type: "bottom", category: "bottom" },
-	{ type: "sunglass", category: "accessory" },
+	{ type: "sunglasses", category: "accessory" },
 	{ type: "bag", category: "accessory" },
 	{ type: "skirt", category: "bottom" },
 	{ type: "jacket", category: "outerwear" },
@@ -101,7 +99,13 @@ export default function Gallery({
 			if (!data || data.length === 0) {
 				setHasMore(false);
 			} else {
-				setFetchItems((prev) => [...prev, ...data]);
+				setFetchItems((prev) => {
+					const existingIds = new Set(prev.map((item) => item.id));
+					const filteredData = data.filter(
+						(item: ClothItem) => !existingIds.has(item.id)
+					);
+					return [...prev, ...filteredData];
+				});
 			}
 
 			setIsLoading(false);
@@ -138,20 +142,29 @@ export default function Gallery({
 		// Refresh the item in the gallery after save
 		showLoader();
 		try {
-			const savedItem = await addUpdateCloth(updatePayload);
-			if (!savedItem) throw new Error("No data returned from server");
+			const savedRes = await addUpdateCloth(updatePayload);
 
+			if (!savedRes.success) throw new Error("No data returned from server");
+
+			const savedItem = savedRes.cloth;
+			console.log("savedItem:", savedItem);
 			setFetchItems((prevItems) => {
 				const existingIndex = prevItems.findIndex(
 					(item) => item.id === savedItem.id
 				);
 
+				console.log("existingIndex:", existingIndex);
+
 				// If the cloth already exists in local list (update)
 				if (existingIndex !== -1) {
 					const oldItem = prevItems[existingIndex];
+					console.log("oldItem:", oldItem);
 
 					// Case 1: category changed → remove from current list
-					if (oldItem.type !== savedItem.type && selectedCategory !== "all") {
+					if (
+						oldItem.category !== savedItem.category &&
+						selectedCategory !== "all"
+					) {
 						const filtered = prevItems.filter((i) => i.id !== savedItem.id);
 						return filtered;
 					}
@@ -160,11 +173,6 @@ export default function Gallery({
 					const updated = [...prevItems];
 					updated[existingIndex] = savedItem;
 					return updated;
-				}
-
-				// 🆕 New cloth (user created a new one in modal)
-				if (savedItem.type === selectedCategory || selectedCategory === "all") {
-					return [savedItem, ...prevItems];
 				}
 
 				// Otherwise ignore (belongs to another category)
