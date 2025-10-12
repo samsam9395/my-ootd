@@ -148,28 +148,44 @@ def create_candidate_by_category(selected_item_id:int):
     ids, embeddings, norms, categories = get_all_embeddings()
     print('all ids:', ids)
     log_memory("After get_all_embeddings()")
-        
-    print('inside create_candidate_by_category, after checking cache')
+    
     # --- Step 1: locate selected item ---
     selected_idx = ids.index(selected_item_id)
     selected_vec = embeddings[selected_idx]
     selected_cat = categories[selected_idx]
     
+    # --- Step 1.5: apply category rules ---
+    def should_exclude_category(selected_category, candidate_category):
+        """Returns True if candidate_category should be excluded based on selected_category"""
+        # Rule 1: if selected is dress, exclude top and bottom
+        if selected_category == 'dress' and candidate_category in ['top', 'bottom']:
+            return True
+        # Rule 2: if selected is top or bottom, exclude dress
+        if selected_category in ['top', 'bottom'] and candidate_category == 'dress':
+            return True
+        return False
+    
+    candidate_indices = [
+        i for i in range(len(ids))
+        if ids[i] != selected_item_id  # not the selected item itself
+        and categories[i] != selected_cat  # not same category
+        and not should_exclude_category(selected_cat, categories[i])  # not excluded by rules
+    ]
+    
     # --- Step 2: cosine similarity using cache---
-    sims = np.dot(norms, selected_vec)
+    candidate_norms = norms[candidate_indices]
+    sims = np.dot(candidate_norms, selected_vec)
     log_memory("After cosine similarity")
-    # --- Step 3: score and group by category, skip selected itself ---
+    
+    # --- Step 3: score and group by category ---
     scored = [
-        {"id": ids[i], "sim": sims[i], "category": categories[i]}
-        for i in range(len(ids))
-        if ids[i] != selected_item_id
+        {"id": ids[idx], "sim": sims[i], "category": categories[idx]}
+        for i, idx in enumerate(candidate_indices)
     ]
 
     grouped = {}
     for item in scored:
         cat = item["category"]
-        if cat == selected_cat:
-            continue  # skip same category if desired
         grouped.setdefault(cat, []).append(item)
     
     # --- Step 5: pick top-N per category ---
@@ -182,6 +198,7 @@ def create_candidate_by_category(selected_item_id:int):
     fetch_ids = [selected_item_id] + top_ids
     all_details = get_details_for_ids(fetch_ids, with_image=False)
     log_memory("After get_details_for_ids()")
+    
     # --- Step 7: split selected vs candidates ---
     selected_item = next((i for i in all_details if i["id"] == selected_item_id), None)
     candidates_by_category = {cat: [] for cat in grouped.keys()}
