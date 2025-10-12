@@ -104,19 +104,23 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 					const scale = diff === 0 ? 1 : 0.5;
 
 					return (
-						<Image
-							width={300}
-							height={400}
+						<div
 							key={i}
-							src={item.image_url}
-							alt={`clothing-${i}`}
-							className="absolute top-1/2 left-1/2 w-100 h-72 rounded-xl shadow-lg object-cover transition-transform duration-300 cursor-pointer"
+							className="absolute top-1/2 left-1/2 w-full h-72 rounded-xl shadow-lg transition-transform duration-300 cursor-pointer"
 							style={{
 								transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${zOffset}px) scale(${scale})`,
 								zIndex: total - Math.abs(diff),
 							}}
 							onClick={() => setSelectedCloth(i)}
-						/>
+						>
+							<Image
+								fill
+								src={item.image_url}
+								alt={`clothing-${i}`}
+								className="object-cover"
+								sizes="100vw"
+							/>
+						</div>
 					);
 				})}
 			</div>
@@ -163,13 +167,16 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 										className="min-w-[120px] max-w-[180px] flex-shrink-0 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform cursor-pointer"
 										onClick={() => setModalItem(item)}
 									>
-										<Image
-											width={180}
-											height={180}
-											src={item.image_url}
-											alt={item?.name}
-											className="w-full h-32 object-cover"
-										/>
+										{/* Wrapper div for positioning and sizing the image */}
+										<div className="relative w-full h-32">
+											<Image
+												fill
+												src={item.image_url}
+												alt={item?.name}
+												className="object-cover"
+												sizes="(max-width: 180px) 180px, 120px"
+											/>
+										</div>
 										<div className="p-1 text-xs text-gray-700">
 											<p className="truncate">{item?.name}</p>
 											<p className="text-gray-400">{item?.type}</p>
@@ -206,16 +213,20 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 							<X size={26} />
 						</button>
 
-						<Image
-							width={400}
-							height={400}
-							src={modalItem.image_url}
-							alt={modalItem?.name}
-							onLoad={() => setImgLoaded(true)}
-							className={`w-full max-h object-cover rounded-lg mb-3 transition-opacity duration-300 ${
+						<div
+							className={`relative w-full mb-3 ${
 								imgLoaded ? "opacity-100" : "opacity-0"
 							}`}
-						/>
+						>
+							<Image
+								fill
+								src={modalItem.image_url}
+								alt={modalItem?.name}
+								onLoad={() => setImgLoaded(true)}
+								className="object-cover rounded-lg transition-opacity duration-300"
+								sizes="100vw"
+							/>
+						</div>
 
 						<h3 className="font-bold text-lg">{modalItem?.name}</h3>
 						<p className="text-gray-500">{modalItem?.type}</p>

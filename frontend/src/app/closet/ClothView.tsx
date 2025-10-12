@@ -39,6 +39,8 @@ export default function ClothView({
 	const [hasTriedAISuggestions, setHasTriedAISuggestions] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 
+	console.log("in ClothView, fetchItems[selectedClothIndex]:", item);
+
 	const handleFetchRecommendations = async (itemId: number) => {
 		try {
 			setHasTriedAISuggestions(true);
@@ -94,19 +96,19 @@ export default function ClothView({
 
 						{/* Main image */}
 						<div className="w-full md:w-[400px] flex justify-center items-center shrink-0">
-							<Image
-								width={400}
-								height={400}
-								src={item.image_url}
-								alt={item.name}
-								className="
-              w-auto md:w-full
-              max-h-[60vh] md:max-h-[70vh]
+							<div className="relative w-full h-[60vh] md:h-[70vh] max-h-[70vh]">
+								<Image
+									fill
+									src={item.image_url}
+									alt={item.name}
+									className="
               object-contain
               rounded-lg
               mb-4 md:mb-0
             "
-							/>
+									sizes="(max-width: 768px) 100vw, 400px"
+								/>
+							</div>
 						</div>
 
 						{/* Right panel (scrollable) */}

@@ -219,13 +219,15 @@ export default function AddClothForm({
 					{/* Photo Upload */}
 					<label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-black text-gray-500">
 						{image ? (
-							<Image
-								width={128}
-								height={128}
-								src={URL.createObjectURL(image)}
-								alt="cloth"
-								className="w-32 h-32 object-cover rounded"
-							/>
+							<div className="relative w-32 h-32">
+								<Image
+									fill
+									src={URL.createObjectURL(image)}
+									alt="cloth"
+									className="object-cover rounded"
+									sizes="128px"
+								/>
+							</div>
 						) : (
 							<span>Click or Drag to Upload Photo</span>
 						)}

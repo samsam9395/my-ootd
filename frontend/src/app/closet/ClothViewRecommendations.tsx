@@ -62,14 +62,16 @@ function ClothViewRecommendations({
 						</div>
 						{recommendations.items.map((item: ClothItem) => (
 							<div key={item.id} className="flex flex-row items-center gap-2 ">
-								<div className="w-32 flex-shrink-0 md:w-36">
-									<Image
-										width={150}
-										height={150}
-										src={item?.image_url}
-										alt={item?.name}
-										className="w-full h-full object-cover rounded-lg aspect-square"
-									/>
+								<div className="w-32 flex-shrink-0 md:w-36 aspect-square rounded-lg">
+									<div className="relative w-full h-full">
+										<Image
+											fill
+											src={item?.image_url}
+											alt={item?.name}
+											className="object-cover rounded-lg"
+											sizes="(max-width: 768px) 128px, 144px"
+										/>
+									</div>
 								</div>
 
 								<div className="flex flex-col text-sm min-w-0">

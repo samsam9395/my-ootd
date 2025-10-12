@@ -241,13 +241,15 @@ export default function Gallery({
 						onClick={() => setSelectedClothIndex(index)}
 						className="bg-white rounded-lg shadow-md cursor-pointer"
 					>
-						<Image
-							width={400}
-							height={400}
-							src={item.image_url}
-							alt={item.name}
-							className="w-full h-64 sm:h-72 md:h-80 lg:h-96 object-cover rounded-t-lg"
-						/>
+						<div className="relative w-full h-64 sm:h-72 md:h-80 lg:h-96 rounded-t-lg">
+							<Image
+								fill
+								src={item.image_url}
+								alt={item.name}
+								className="object-cover rounded-t-lg"
+								sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+							/>
+						</div>
 						<div className="p-2">
 							<p className="text-sm font-medium">{item.name}</p>
 						</div>
