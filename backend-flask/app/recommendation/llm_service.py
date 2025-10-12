@@ -19,20 +19,34 @@ def ask_openrouter_for_outfit(shortlist, selected_item):
             item_styles = ", ".join([cs['styles']['name'] for cs in item.get("clothes_styles", [])])
             prompt += f"- {item['type']} (id: {item['id']}): {item['name']}, color: {item['colour']}, styles: {item_styles}\n"
 
+    # prompt += (
+    # "\nInstructions:"
+    # "\n- Pick 1 item per category from the candidates."
+    # "\n- If no perfect match, pick the closest."
+    # "\n- Return the outfit in JSON format as a single object with keys for each category and additional keys: 'style_phrase' and 'style_flair'."
+    # "\n- After the outfit, add ONE short phrase describing the outfit’s overall style as: " "style_phrase: (e.g., \"casual chic\", \"spring clean-fit\", \"all-white chic\")."
+    # "\n- Then add ONE sentence about the vibe or occasion for this outfit as: " "style_flair: (e.g., \"Perfect for a casual city brunch.\")."
+    # "\n- Example output format:\n"
+    # '{"shoes": 7, "dress": 41, "bottom": 4, "accessory": 15, "style_phrase": "formal minimalist", "style_flair": "Perfect for a casual city brunch with friends."}'
+    # "\n- Do NOT invent categories."
+    # "\n- Do NOT explain or justify your choices."
+    # )
+    
     prompt += (
-    "\nInstructions:"
-    "\n- Pick 1 item per category from the candidates."
-    "\n- If no perfect match, pick the closest."
-    "\n- Return the outfit in JSON format as a single object with keys for each category and additional keys: 'style_phrase' and 'style_flair'."
-    "\n- After the outfit, add ONE short phrase describing the outfit’s overall style as: " "style_phrase: (e.g., \"casual chic\", \"spring clean-fit\", \"all-white chic\")."
-    "\n- Then add ONE sentence about the vibe or occasion for this outfit as: " "style_flair: (e.g., \"Perfect for a casual city brunch.\")."
-    "\n- Example output format:\n"
-    '{"shoes": 7, "dress": 41, "bottom": 4, "accessory": 15, "style_phrase": "formal minimalist", "style_flair": "Perfect for a casual city brunch with friends."}'
-    "\n- Do NOT invent categories."
-    "\n- Do NOT explain or justify your choices."
+        "\nInstructions:"
+        "\n- Pick exactly **1 item per category** from the candidates list ONLY."
+        "\n- You must return the **id** value of each chosen item (not its name)."
+        "\n- Do NOT invent or mention any items not listed in the candidates."
+        f"\n- Do NOT include the base category ('{category}') in your outfit."
+        "\n- If no perfect match, pick the closest style or color match."
+        "\n- Return the outfit as a single JSON object with keys for each category, plus two extra keys: 'style_phrase' and 'style_flair'."
+        "\n- After the outfit JSON, do NOT add explanations or commentary."
+        "\n- Example output format (must use IDs, not names):"
+        '\n  {"top": 2, "bottom": 50, "accessory": 11, "style_phrase": "formal minimalist", "style_flair": "Perfect for a dinner event."}'
     )
     
-    # print("AI prompt:", prompt)
+    
+    print("AI prompt:", prompt)
     response = requests.post(
         url="https://openrouter.ai/api/v1/chat/completions",
         headers={

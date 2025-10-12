@@ -1,8 +1,9 @@
 from supabase import create_client
 from flask import current_app, g
 import unicodedata
-from ..recommendation.embedding_service import generate_embedding
-from ..memory_logger import log_memory
+from app.memory_logger import log_memory
+
+from app.utils import get_current_user_id,generate_embedding
 _supabase = None
 
 TYPE_TO_CATEGORY = {
@@ -27,11 +28,6 @@ def get_supabase():
         )
     return _supabase
 
-# -------------------------------
-# Helper to get current user_id from token (set in g.user_id by token_required)
-# -------------------------------
-def get_current_user_id():
-    return getattr(g, "user_id", None)
 
 
 # Fetch cloth by type and pagination
@@ -43,8 +39,8 @@ def get_clothes_by_type(category: str | None, limit: int, offset: int):
     supabase = get_supabase()
     query = supabase.table("clothes").select("""
         id, name, type, colour, category, image_url,
-        clothes_styles!inner(
-            styles!inner(id, name)
+        clothes_styles (
+            styles (id, name)
         )
     """).eq("user_id", user_id).range(offset, offset + limit - 1)
     
@@ -67,34 +63,34 @@ def get_clothes_by_type(category: str | None, limit: int, offset: int):
     return result
 
 # Fetch all items
-def get_all_items():
-    supabase = get_supabase()
-    user_id = get_current_user_id()
+# def get_all_items():
+#     supabase = get_supabase()
+#     user_id = get_current_user_id()
     
-    if not user_id:
-        return []  # or handle unauthorized
+#     if not user_id:
+#         return []  # or handle unauthorized
     
-    try:
-        response = supabase.table("clothes").select("""
-            id,
-            name,
-            type,
-            colour,
-            category,
-            image_url,
-            clothes_styles (
-                styles (
-                    id,
-                    name
-                )
-            )
-        """).eq("user_id", user_id).execute()
+#     try:
+#         response = supabase.table("clothes").select("""
+#             id,
+#             name,
+#             type,
+#             colour,
+#             category,
+#             image_url,
+#             clothes_styles (
+#                 styles (
+#                     id,
+#                     name
+#                 )
+#             )
+#         """).eq("user_id", user_id).execute()
         
-        return response.data
-    except Exception as e:
-        print("Error fetching items:", e)
-        return None
-
+#         return response.data
+#     except Exception as e:
+#         print("Error fetching items:", e)
+#         return None
+    
 
 # Fetch all style tags
 def fetch_style_tags():
@@ -139,53 +135,53 @@ def get_random_items():
 
 
     # Update existing cloth item using RPC (transactional)
-def update_cloth_in_db(cloth_id, cloth_data):
-    user_id = get_current_user_id()
-    if not user_id:
-        return {"success": False, "error": "Unauthorized"}
+# def update_cloth_in_db(cloth_id, cloth_data):
+#     user_id = get_current_user_id()
+#     if not user_id:
+#         return {"success": False, "error": "Unauthorized"}
 
-    supabase = get_supabase()
-    # verify ownership
-    existing = supabase.table("clothes").select("id")\
-        .eq("id", cloth_id).eq("user_id", user_id).execute()
-    if not existing.data:
-        return {"success": False, "error": "Cloth not found or not yours"}
+#     supabase = get_supabase()
+#     # verify ownership
+#     existing = supabase.table("clothes").select("id")\
+#         .eq("id", cloth_id).eq("user_id", user_id).execute()
+#     if not existing.data:
+#         return {"success": False, "error": "Cloth not found or not yours"}
 
 
-    try:
-        # 1. Extract style IDs from input
-        style_ids = []
-        new_style_names = []
+#     try:
+#         # 1. Extract style IDs from input
+#         style_ids = []
+#         new_style_names = []
 
-        for s in cloth_data.get("styles", []):
-            if s.get("id"):  # existing style
-                style_ids.append(int(s["id"]))
-            elif s.get("name"):  # new style
-                new_style_names.append(s["name"].strip().lower())
+#         for s in cloth_data.get("styles", []):
+#             if s.get("id"):  # existing style
+#                 style_ids.append(int(s["id"]))
+#             elif s.get("name"):  # new style
+#                 new_style_names.append(s["name"].strip().lower())
 
-        # 2. Ensure new styles exist (returns rows with IDs)
-        new_style_rows = create_style_tags(new_style_names) if new_style_names else []
+#         # 2. Ensure new styles exist (returns rows with IDs)
+#         new_style_rows = create_style_tags(new_style_names) if new_style_names else []
 
-        # 3. Combine all style IDs
-        all_style_ids = style_ids + [row["id"] for row in (new_style_rows or [])]
+#         # 3. Combine all style IDs
+#         all_style_ids = style_ids + [row["id"] for row in (new_style_rows or [])]
 
-        # 4. Call the RPC to update cloth and relations in a transaction
-        response = supabase.rpc(
-    "update_cloth_with_styles",
-    {
-        "p_user_id": user_id,
-        "p_cloth_id": cloth_id,
-        "p_name": cloth_data["name"],
-        "p_colour": cloth_data["colour"],
-        "p_type": cloth_data["type"],
-        "p_style_ids": all_style_ids  # list of integers
-    }
-).execute()
-        return {"success": True}
+#         # 4. Call the RPC to update cloth and relations in a transaction
+#         response = supabase.rpc(
+#     "update_cloth_with_styles",
+#     {
+#         "p_user_id": user_id,
+#         "p_cloth_id": cloth_id,
+#         "p_name": cloth_data["name"],
+#         "p_colour": cloth_data["colour"],
+#         "p_type": cloth_data["type"],
+#         "p_style_ids": all_style_ids  # list of integers
+#     }
+# ).execute()
+#         return {"success": True}
 
-    except Exception as e:
-        print("Error in update_cloth_in_db:", e)
-        return {"success": False, "error": str(e)}
+#     except Exception as e:
+#         print("Error in update_cloth_in_db:", e)
+#         return {"success": False, "error": str(e)}
         
         
 # Update cloth image URL only 
@@ -252,118 +248,118 @@ def delete_cloth_in_db(cloth_id: int) -> bool:
         return False
 
 # Fetch selected item and relevant items sharing styles
-def get_relevant_items_by_shared_styles(selected_item_id: int, top_n_per_category: int = 3):
-    """
-    Fetch the selected item and related items that share style tags.
-    Returns:
-        selected_item: dict
-        grouped_shortlist: dict {category: [items]}
-    """
-    user_id = get_current_user_id()
-    if not user_id:
-        return None, {}
+# def get_relevant_items_by_shared_styles(selected_item_id: int, top_n_per_category: int = 3):
+#     """
+#     Fetch the selected item and related items that share style tags.
+#     Returns:
+#         selected_item: dict
+#         grouped_shortlist: dict {category: [items]}
+#     """
+#     user_id = get_current_user_id()
+#     if not user_id:
+#         return None, {}
 
-    supabase = get_supabase()
+#     supabase = get_supabase()
 
-    # Step 1: Fetch selected item
-    selected_resp = (
-        supabase.table("clothes")
-        .select("""
-            id,
-            name,
-            type,
-            colour,
-            category,
-            image_url,
-            clothes_styles (
-                styles (
-                    id,
-                    name
-                )
-            )
-        """)
-        .eq("user_id", user_id)
-        .eq("id", selected_item_id)
-        .single()
-        .execute()
-    )
-    selected_item = selected_resp.data
-    if not selected_item:
-        return None, {}
+#     # Step 1: Fetch selected item
+#     selected_resp = (
+#         supabase.table("clothes")
+#         .select("""
+#             id,
+#             name,
+#             type,
+#             colour,
+#             category,
+#             image_url,
+#             clothes_styles (
+#                 styles (
+#                     id,
+#                     name
+#                 )
+#             )
+#         """)
+#         .eq("user_id", user_id)
+#         .eq("id", selected_item_id)
+#         .single()
+#         .execute()
+#     )
+#     selected_item = selected_resp.data
+#     if not selected_item:
+#         return None, {}
     
-    # convert selected_item id
-    selected_item["id"] = int(selected_item["id"])
+#     # convert selected_item id
+#     selected_item["id"] = int(selected_item["id"])
     
-    # convert clothes_styles ids
-    for cs in selected_item.get("clothes_styles", []):
-        if cs.get("styles"):
-            cs["styles"]["id"] = int(cs["styles"]["id"])
+#     # convert clothes_styles ids
+#     for cs in selected_item.get("clothes_styles", []):
+#         if cs.get("styles"):
+#             cs["styles"]["id"] = int(cs["styles"]["id"])
 
-    # Step 2: Get selected item's style IDs
-    style_ids = [s["styles"]["id"] for s in selected_item.get("clothes_styles", []) if s.get("styles")]
-    if not style_ids:
-        return selected_item, {}
+#     # Step 2: Get selected item's style IDs
+#     style_ids = [s["styles"]["id"] for s in selected_item.get("clothes_styles", []) if s.get("styles")]
+#     if not style_ids:
+#         return selected_item, {}
 
-    # Step 3: Get other clothes sharing any of these styles
-    clothes_styles_resp = (
-        supabase.table("clothes_styles")
-        .select("cloth_id, style_id")
-        .in_("style_id", style_ids)
-        .neq("cloth_id", selected_item_id)
-        .execute()
-    )
+#     # Step 3: Get other clothes sharing any of these styles
+#     clothes_styles_resp = (
+#         supabase.table("clothes_styles")
+#         .select("cloth_id, style_id")
+#         .in_("style_id", style_ids)
+#         .neq("cloth_id", selected_item_id)
+#         .execute()
+#     )
 
-    # Step 4: Count shared styles per cloth_id
-    shared_count = {}
-    for row in clothes_styles_resp.data:
-        cid = row["cloth_id"]
-        shared_count[cid] = shared_count.get(cid, 0) + 1
+#     # Step 4: Count shared styles per cloth_id
+#     shared_count = {}
+#     for row in clothes_styles_resp.data:
+#         cid = row["cloth_id"]
+#         shared_count[cid] = shared_count.get(cid, 0) + 1
 
-    related_clothes_ids = list(shared_count.keys())
-    if not related_clothes_ids:
-        return selected_item, {}
+#     related_clothes_ids = list(shared_count.keys())
+#     if not related_clothes_ids:
+#         return selected_item, {}
 
-    # Step 5: Fetch full data for related clothes
-    clothes_resp = (
-        supabase.table("clothes")
-        .select("""
-            id,
-            name,
-            type,
-            colour,
-            category,
-            image_url,
-            clothes_styles (
-                styles (
-                    id,
-                    name
-                )
-            )
-        """)
-        .eq("user_id", user_id)
-        .in_("id", related_clothes_ids)
-        .execute()
-    )
-    all_items = clothes_resp.data or []
+#     # Step 5: Fetch full data for related clothes
+#     clothes_resp = (
+#         supabase.table("clothes")
+#         .select("""
+#             id,
+#             name,
+#             type,
+#             colour,
+#             category,
+#             image_url,
+#             clothes_styles (
+#                 styles (
+#                     id,
+#                     name
+#                 )
+#             )
+#         """)
+#         .eq("user_id", user_id)
+#         .in_("id", related_clothes_ids)
+#         .execute()
+#     )
+#     all_items = clothes_resp.data or []
 
-    # Step 6: Sort by number of shared styles & group by category
-    relevant_style_items = {}
-    for item in sorted(all_items, key=lambda x: shared_count.get(x["id"], 0), reverse=True):
-        cat = item["category"]
-        if cat not in relevant_style_items:
-            relevant_style_items[cat] = []
-        if len(relevant_style_items[cat]) < top_n_per_category:
-            relevant_style_items[cat].append({
-                "id": item["id"],
-                "name": item["name"],
-                "type": item["type"],
-                "colour": item["colour"],
-                "category": item["category"],
-                "styles": [s["styles"]["name"] for s in item.get("clothes_styles", []) if s.get("styles")],
-                "image_url": item["image_url"]
-            })
+#     # Step 6: Sort by number of shared styles & group by category
+#     relevant_style_items = {}
+#     for item in sorted(all_items, key=lambda x: shared_count.get(x["id"], 0), reverse=True):
+#         cat = item["category"]
+#         if cat not in relevant_style_items:
+#             relevant_style_items[cat] = []
+#         if len(relevant_style_items[cat]) < top_n_per_category:
+#             relevant_style_items[cat].append({
+#                 "id": item["id"],
+#                 "name": item["name"],
+#                 "type": item["type"],
+#                 "colour": item["colour"],
+#                 "category": item["category"],
+#                 "styles": [s["styles"]["name"] for s in item.get("clothes_styles", []) if s.get("styles")],
+#                 "image_url": item["image_url"]
+#             })
 
-    return selected_item, relevant_style_items
+#     return selected_item, relevant_style_items
 
 
 def insert_cloth_with_styles_embedding(cloth_data):
@@ -378,6 +374,7 @@ def insert_cloth_with_styles_embedding(cloth_data):
         styles: [{id?: int, name?: str}, ...]  # existing or new styles
     }
     """
+    from app.recommendation.embedding_service import clear_user_embeddings
     user_id = get_current_user_id()
     if not user_id:
         return {"success": False, "error": "Unauthorized"}
@@ -504,8 +501,81 @@ def insert_cloth_with_styles_embedding(cloth_data):
         # Return to frontend without embedding
         if not cloth_data:
             return {"success": False, "error": "Failed to fetch saved cloth"}
+        clear_user_embeddings(user_id)  # clear cache
         return {"success": True, "cloth": cloth_data}
 
     except Exception as e:
         print("Error inserting cloth with styles:", e)
         return {"success": False, "error": str(e)}
+    
+
+
+# Fetch all items' embedding and ids
+def get_all_cloth_embedding():
+    supabase = get_supabase()
+    user_id = get_current_user_id()
+    
+    try:
+        response = (
+            supabase.table("clothes")
+            .select("id, embedding, category")
+            .eq("user_id", user_id)
+            .not_.is_("embedding", None)
+            .execute()
+        )
+        data = response.data or []
+         # sanity check: filter valid embeddings only
+        valid = [row for row in data if row.get("embedding")]
+        return valid
+    except Exception as e:
+        print("Error fetching all items embedding:", e)
+        return None
+
+# Fetch details for list of ids (top K candidates or recommended items)
+def get_details_for_ids(top_ids, with_image=False):
+    supabase = get_supabase()
+    user_id = get_current_user_id()
+    
+    if not top_ids:
+        return []
+
+    try:
+        if with_image:
+            response = supabase.table("clothes").select("""
+                id,
+                name,
+                type,
+                colour,
+                category,
+                image_url,
+                clothes_styles (
+                    styles (
+                        id,
+                        name
+                    )
+                )
+            """).eq("user_id", user_id).in_("id", top_ids).execute()
+        else:
+            response = supabase.table("clothes").select("""
+                id,
+                name,
+                type,
+                colour,
+                category,
+                clothes_styles (
+                    styles (
+                        id,
+                        name
+                    )
+                )
+            """).eq("user_id", user_id).in_("id", top_ids).execute()
+        
+        items = response.data or []
+        # Convert styles to list of names
+        for item in items:
+            item["styles"] = [cs["styles"]["name"] for cs in item.get("clothes_styles", []) if cs.get("styles")]
+        
+        return items
+    except Exception as e:
+        print("Error fetching details for IDs:", e)
+        return []
