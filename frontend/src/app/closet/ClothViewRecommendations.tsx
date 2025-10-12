@@ -40,11 +40,11 @@ function ClothViewRecommendations({
 
 			{/* Recommendations */}
 			{recommendations && !isLoadingRecs && (
-				<div className="flex flex-col gap-4 mt-6">
-					<div className="border border-gray-200 rounded-lg p-2 flex flex-col gap-2">
-						<div className="space-y-0.5 text-sm">
+				<div className="flex flex-col gap-4 mt-4">
+					<div className="border border-gray-200 rounded-lg p-4 px-6 xl:p-2 xl:px-2 flex flex-col gap-4">
+						<div className="space-y-1 text-sm mb-2">
 							{recommendations?.style_phrase && (
-								<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
+								<div className="grid grid-cols-[70px_auto] gap-1">
 									<div className="text-gray-700 font-semibold">Theme:</div>
 									<span className="font-normal italic text-gray-600">
 										{recommendations.style_phrase}
@@ -52,7 +52,7 @@ function ClothViewRecommendations({
 								</div>
 							)}
 							{recommendations?.style_flair && (
-								<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
+								<div className="grid grid-cols-[70px_auto] gap-1">
 									<div className="text-gray-700 font-semibold">The Edit:</div>
 									<span className="font-normal italic text-gray-600">
 										{recommendations.style_flair}
@@ -75,10 +75,8 @@ function ClothViewRecommendations({
 								</div>
 
 								<div className="flex flex-col text-sm min-w-0">
-									<span className="font-semibold truncate">{item?.name}</span>
-									<span className="text-gray-500 truncate">
-										{item?.category}
-									</span>
+									<span className="font-semibold">{item?.name}</span>
+									<span className="text-gray-500 ">{item?.category}</span>
 								</div>
 							</div>
 						))}

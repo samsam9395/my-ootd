@@ -178,7 +178,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 											/>
 										</div>
 										<div className="p-1 text-xs text-gray-700">
-											<p className="truncate">{item?.name}</p>
+											<p>{item?.name}</p>
 											<p className="text-gray-400">{item?.type}</p>
 										</div>
 									</div>
