@@ -4,8 +4,8 @@ export interface StyleTag {
 }
 
 export type ClothRecommendationSet = {
-    _style_phrase?: string;
-    _style_flair?: string;
+    style_phrase?: string;
+    style_flair?: string;
     items: ClothItem[];
 };
 

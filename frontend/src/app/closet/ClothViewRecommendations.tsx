@@ -43,19 +43,19 @@ function ClothViewRecommendations({
 				<div className="flex flex-col gap-4 mt-6">
 					<div className="border border-gray-200 rounded-lg p-2 flex flex-col gap-2">
 						<div className="space-y-0.5 text-sm">
-							{recommendations?._style_phrase && (
+							{recommendations?.style_phrase && (
 								<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
 									<div className="text-gray-700 font-semibold">Theme:</div>
 									<span className="font-normal italic text-gray-600">
-										{recommendations._style_phrase}
+										{recommendations.style_phrase}
 									</span>
 								</div>
 							)}
-							{recommendations?._style_flair && (
+							{recommendations?.style_flair && (
 								<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
 									<div className="text-gray-700 font-semibold">The Edit:</div>
 									<span className="font-normal italic text-gray-600">
-										{recommendations._style_flair}
+										{recommendations.style_flair}
 									</span>
 								</div>
 							)}

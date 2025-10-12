@@ -143,19 +143,19 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 								{'"'}
 							</h3>
 							<div className="space-y-0.8 text-sm">
-								{recResponse?._style_phrase && (
+								{recResponse?.style_phrase && (
 									<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
 										<div className="text-gray-700 font-semibold">Theme:</div>
 										<span className="font-normal italic text-gray-600">
-											{recResponse._style_phrase}
+											{recResponse.style_phrase}
 										</span>
 									</div>
 								)}
-								{recResponse?._style_flair && (
+								{recResponse?.style_flair && (
 									<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
 										<div className="text-gray-700 font-semibold">The Edit:</div>
 										<span className="font-normal italic text-gray-600">
-											{recResponse._style_flair}
+											{recResponse.style_flair}
 										</span>
 									</div>
 								)}
