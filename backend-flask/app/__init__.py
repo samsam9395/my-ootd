@@ -1,11 +1,18 @@
 from flask import Flask, request
 from flask_cors import CORS
-import os
+import os, psutil, time, threading
 from dotenv import load_dotenv
 from .auth import auth_bp
 from .cloth import bp as cloth_bp
 from .recommendation import bp as rec_bp
 
+def monitor_memory_during_startup():
+    process = psutil.Process(os.getpid())
+    for i in range(10):  # check 10 times (~10 seconds)
+        mem = process.memory_info().rss / 1024 / 1024  # in MB
+        print(f"[MEMORY DEBUG] Flask using: {mem:.2f} MB")
+        time.sleep(1)
+        
 def create_app():
     # Load .env only in development
     if os.getenv("FLASK_ENV") != "production":
@@ -60,5 +67,6 @@ def create_app():
     def health():
         return {"status": "ok"}, 200
     
-    
+    # After initializing blueprints, models, etc.
+    threading.Thread(target=monitor_memory_during_startup, daemon=True).start()
     return app

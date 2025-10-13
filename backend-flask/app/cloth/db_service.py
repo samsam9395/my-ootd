@@ -1,5 +1,5 @@
 from supabase import create_client
-from flask import current_app, g
+from flask import current_app
 import unicodedata
 from app.memory_logger import log_memory
 

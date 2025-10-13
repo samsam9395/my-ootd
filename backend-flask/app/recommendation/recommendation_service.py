@@ -5,8 +5,6 @@ from .parser import map_ai_json_to_db_details
 from app.memory_logger import log_memory
 
 
-# Simple memory cache { user_id: { 'embeddings': np.ndarray, 'ids': list, 'timestamp': float } }
-
 
 # def recommend_outfit(selected_item_id: int):
 #     """
