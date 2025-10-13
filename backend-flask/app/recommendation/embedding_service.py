@@ -5,7 +5,7 @@ import numpy as np
 from time import time
 from app.memory_logger import log_memory
 from app.utils import get_current_user_id
-
+log_memory("startup embedding_service")
 
 # Cache
 EMBED_CACHE = {}
