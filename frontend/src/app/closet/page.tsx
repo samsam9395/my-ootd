@@ -8,6 +8,7 @@ import AddClothForm from "./AddClothForm";
 import { ClothItem, StyleTag } from "@/types";
 import { getRandomClothes, getStyleTags } from "@/utils/api/clothes";
 import { useAuth } from "@/contexts/AuthContext";
+import { Menu } from "lucide-react";
 
 const categories = [
 	"all",
@@ -68,19 +69,19 @@ function ClosetContent() {
 			/>
 
 			{/* Hamburger button for mobile */}
-			<div className="sm:hidden fixed top-4 left-4 z-50">
+			<div className="w-full fixed top-[64px]left-0 bg-gray-800 p-1 z-50 flex justify-between items-center sm:hidden">
 				<button
 					onClick={() => setSidebarOpen(!sidebarOpen)}
-					className="bg-gray-400 text-white px-3 py-2 rounded shadow-lg"
+					className="sm:hidden text-white px-3 py-2 rounded cursor-pointer"
 				>
-					☰
+					<Menu size={20} />
 				</button>
 			</div>
 
 			{/* Sidebar */}
 			<aside
 				className={`
-					fixed top-0 left-0 h-full w-48 bg-white p-6 shadow-lg transform
+					z-[101] fixed top-0 left-0 h-full w-48 bg-white p-6 shadow-lg transform
 					${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
 					transition-transform duration-300 ease-in-out
 					sm:translate-x-0 sm:static sm:block sm:shadow-none
@@ -104,7 +105,7 @@ function ClosetContent() {
 			</aside>
 
 			{/* Main content */}
-			<main className="flex-1 flex flex-col pt-24 overflow-y-auto bg-white ml-0 sm:ml-48">
+			<main className="flex-1 flex flex-col pt-[80px] sm:pt-[50px] overflow-y-auto bg-white ml-0 ">
 				<div className="w-full px-6 flex justify-start mb-10">
 					<button
 						className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
@@ -135,7 +136,7 @@ function ClosetContent() {
 			{/* Overlay when sidebar open on mobile */}
 			{sidebarOpen && (
 				<div
-					className="fixed inset-0 bg-black opacity-30 sm:hidden"
+					className="fixed inset-0 bg-black opacity-30 sm:hidden z-[100]"
 					onClick={() => setSidebarOpen(false)}
 				></div>
 			)}

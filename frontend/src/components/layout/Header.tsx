@@ -23,7 +23,7 @@ export default function Header() {
 	};
 
 	return (
-		<header className="bg-gray-800 text-white p-3">
+		<header className="bg-gray-800 text-white p-3 h-14 sticky top-0 z-50">
 			<nav className="mx-auto flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<h1 className="font-bold text-xl">My OOTD</h1>

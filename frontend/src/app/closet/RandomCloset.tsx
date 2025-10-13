@@ -77,7 +77,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 				<button
 					onClick={prev}
 					className="absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 
-               bg-black/40 text-white p-3 rounded-full z-10 cursor-pointer
+               bg-black/40 text-white p-3 rounded-full z-5 cursor-pointer
                opacity-0 group-hover:opacity-100 transition-opacity duration-300"
 				>
 					<ChevronLeft size={18} />
@@ -87,7 +87,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 				<button
 					onClick={next}
 					className="absolute top-1/2 right-0 translate-x-full -translate-y-1/2 
-               bg-black/40 text-white p-3 rounded-full z-10 cursor-pointer
+               bg-black/40 text-white p-3 rounded-full z-5 cursor-pointer
                opacity-0 group-hover:opacity-100 transition-opacity duration-300"
 				>
 					<ChevronRight size={18} />
