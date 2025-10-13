@@ -1,10 +1,13 @@
 from flask import Flask, request
 from flask_cors import CORS
-import os, psutil, time, threading
+import os, psutil, time, threading,gc
 from dotenv import load_dotenv
 from .auth import auth_bp
 from .cloth import bp as cloth_bp
 from .recommendation import bp as rec_bp
+
+# Force garbage collection more frequently
+gc.set_threshold(700, 10, 10)
 
 def monitor_memory_during_startup():
     process = psutil.Process(os.getpid())
@@ -13,6 +16,7 @@ def monitor_memory_during_startup():
         print(f"[MEMORY DEBUG] Flask using: {mem:.2f} MB")
         time.sleep(1)
         
+
 def create_app():
     # Load .env only in development
     if os.getenv("FLASK_ENV") != "production":
