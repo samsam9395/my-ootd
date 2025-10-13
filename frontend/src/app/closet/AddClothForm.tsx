@@ -217,7 +217,16 @@ export default function AddClothForm({
 				<h2 className="text-xl font-semibold mb-4">Add / Update Closet</h2>
 				<form onSubmit={handleSubmitEmbedded} className="flex flex-col gap-4">
 					{/* Photo Upload */}
-					<label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-black text-gray-500">
+					<label
+						className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-black text-gray-500"
+						onDrop={(e) => {
+							e.preventDefault();
+							if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+								setImage(e.dataTransfer.files[0]);
+							}
+						}}
+						onDragOver={(e) => e.preventDefault()}
+					>
 						{image ? (
 							<div className="relative w-32 h-32">
 								<Image

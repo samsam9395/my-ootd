@@ -532,11 +532,11 @@ def get_all_cloth_embedding():
         return None
 
 # Fetch details for list of ids (top K candidates or recommended items)
-def get_details_for_ids(top_ids, with_image=False):
+def get_details_for_ids(valid_ids, with_image=False):
     supabase = get_supabase()
     user_id = get_current_user_id()
     
-    if not top_ids:
+    if not valid_ids:
         return []
 
     try:
@@ -554,7 +554,7 @@ def get_details_for_ids(top_ids, with_image=False):
                         name
                     )
                 )
-            """).eq("user_id", user_id).in_("id", top_ids).execute()
+            """).eq("user_id", user_id).in_("id", valid_ids).execute()
         else:
             response = supabase.table("clothes").select("""
                 id,
@@ -568,7 +568,7 @@ def get_details_for_ids(top_ids, with_image=False):
                         name
                     )
                 )
-            """).eq("user_id", user_id).in_("id", top_ids).execute()
+            """).eq("user_id", user_id).in_("id", valid_ids).execute()
         
         items = response.data or []
         # Convert styles to list of names

@@ -123,6 +123,7 @@ export default function ClothView({
 								/>
 							) : (
 								<ClothViewRecommendations
+									item={item}
 									isLoadingRecs={isLoadingRecs}
 									recommendations={recommendations}
 									hasTriedAISuggestions={hasTriedAISuggestions}

@@ -4,6 +4,7 @@ import Image from "next/image";
 
 type ClothViewRecommendationsProps = {
 	isLoadingRecs: boolean;
+	item: ClothItem;
 	recommendations: ClothRecommendationSet | null;
 	hasTriedAISuggestions: boolean;
 	onFetchRecommendations: () => Promise<void>;
@@ -11,6 +12,7 @@ type ClothViewRecommendationsProps = {
 
 function ClothViewRecommendations({
 	isLoadingRecs,
+	item,
 	recommendations,
 	hasTriedAISuggestions,
 	onFetchRecommendations,
@@ -32,7 +34,7 @@ function ClothViewRecommendations({
 			{isLoadingRecs && (
 				<div className="flex w-full flex-col items-center mt-6">
 					<div className="text-gray-700 italic text-md mb-2">
-						Curating your chic look… This takes a moment!
+						Curating your chic look......This takes a moment!
 					</div>
 					<Loader />
 				</div>
@@ -43,9 +45,13 @@ function ClothViewRecommendations({
 				<div className="flex flex-col gap-4 mt-4">
 					<div className="border border-gray-200 rounded-lg p-4 px-6 xl:p-2 xl:px-2 flex flex-col gap-4">
 						<div className="space-y-1 text-sm mb-2">
+							<h3 className=" text-lg mb-2">
+								Suggested items for: <br />
+								<span className="font-bold italic">"{item.name}"</span>
+							</h3>
 							{recommendations?.style_phrase && (
-								<div className="grid grid-cols-[70px_auto] gap-1">
-									<div className="text-gray-700 font-semibold">Theme:</div>
+								<div className="grid grid-cols-[70px_auto] gap-1 ">
+									<div className="text-gray-700 font-semibold ">Theme:</div>
 									<span className="font-normal italic text-gray-600">
 										{recommendations.style_phrase}
 									</span>

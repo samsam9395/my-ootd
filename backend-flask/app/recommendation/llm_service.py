@@ -41,8 +41,8 @@ def ask_openrouter_for_outfit(shortlist, selected_item):
         "\n- If no perfect match, pick the closest style or color match."
         "\n- Return the outfit as a single JSON object with keys for each category, plus two extra keys: 'style_phrase' and 'style_flair'."
         "\n- After the outfit JSON, do NOT add explanations or commentary."
-        "\n- Example output format (must use IDs, not names):"
-        '\n  {"top": 2, "bottom": 50, "accessory": 11, "style_phrase": "formal minimalist", "style_flair": "Perfect for a dinner event."}'
+        "\n- Example output format (must return cloth IDs integer, not names text):"
+        '\n  {"shoes": 2, "accessory": 10, "jacket": 26, "style_phrase": "formal minimalist", "style_flair": "Perfect for a laid-back lunch event."}'
     )
     
     

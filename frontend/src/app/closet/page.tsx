@@ -28,10 +28,12 @@ function ClosetContent() {
 	const [dbTagStyles, setDbTagStyles] = useState<StyleTag[]>([]);
 	const [randomItemsArr, setRandomItemsArr] = useState([]);
 	const [newCloth, setNewCloth] = useState<ClothItem | null>(null);
+	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	function handleCategoryChange(category: string) {
 		if (category === selectedCategory) return;
 		router.push(`/closet?category=${category}`);
+		setSidebarOpen(false); // close drawer on selection (mobile)
 	}
 
 	useEffect(() => {
@@ -62,12 +64,28 @@ function ClosetContent() {
 				isOpen={isFormOpen}
 				dbTagStyles={dbTagStyles}
 				onClose={() => setIsFormOpen(false)}
-				onAddCloth={(newCloth) => {
-					setNewCloth(newCloth);
-				}}
+				onAddCloth={(newCloth) => setNewCloth(newCloth)}
 			/>
-			{/* Left sidebar */}
-			<aside className="w-48 shrink-0 p-6">
+
+			{/* Hamburger button for mobile */}
+			<div className="sm:hidden fixed top-4 left-4 z-50">
+				<button
+					onClick={() => setSidebarOpen(!sidebarOpen)}
+					className="bg-gray-400 text-white px-3 py-2 rounded shadow-lg"
+				>
+					☰
+				</button>
+			</div>
+
+			{/* Sidebar */}
+			<aside
+				className={`
+					fixed top-0 left-0 h-full w-48 bg-white p-6 shadow-lg transform
+					${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+					transition-transform duration-300 ease-in-out
+					sm:translate-x-0 sm:static sm:block sm:shadow-none
+				`}
+			>
 				<h2 className="font-bold text-xl mb-4">Categories</h2>
 				<ul className="space-y-2">
 					{categories.map((cat) => (
@@ -85,8 +103,8 @@ function ClosetContent() {
 				</ul>
 			</aside>
 
-			{/* Right Clothes Display */}
-			<main className="flex-1 flex flex-col pt-24 overflow-y-auto bg-white">
+			{/* Main content */}
+			<main className="flex-1 flex flex-col pt-24 overflow-y-auto bg-white ml-0 sm:ml-48">
 				<div className="w-full px-6 flex justify-start mb-10">
 					<button
 						className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
@@ -95,12 +113,15 @@ function ClosetContent() {
 						+ Add New Item To Closet
 					</button>
 				</div>
+
 				<div className="w-full px-6 mb-2">
 					<p className="text-gray-500 italic text-sm">
 						{"🎲 Today's lucky picks from your closet"}
 					</p>
 				</div>
+
 				<RandomCloset randomItemsArr={randomItemsArr} />
+
 				<div className="w-full px-6">
 					<Gallery
 						selectedCategory={selectedCategory}
@@ -110,6 +131,14 @@ function ClosetContent() {
 					/>
 				</div>
 			</main>
+
+			{/* Overlay when sidebar open on mobile */}
+			{sidebarOpen && (
+				<div
+					className="fixed inset-0 bg-black opacity-30 sm:hidden"
+					onClick={() => setSidebarOpen(false)}
+				></div>
+			)}
 		</div>
 	);
 }

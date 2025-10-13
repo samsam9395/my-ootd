@@ -76,15 +76,18 @@ def map_ai_json_to_db_details(ai_res_json):
         return {"success": False, "message": "Unexpected AI response type"}
 
     # --- Extract cloth IDs (skip style_phrase and style_flair) ---
-    top_ids = [v for k, v in ai_res_json.items() if k not in ["style_phrase", "style_flair"]]
+    valid_ids = [
+    v for k, v in ai_res_json.items()
+    if k not in ["style_phrase", "style_flair"] and isinstance(v, int)
+]
 
     # --- Fetch full details from DB ---
-    db_items = get_details_for_ids(top_ids, with_image=True)
+    db_items = get_details_for_ids(valid_ids, with_image=True)
     db_items_map = {item["id"]: item for item in db_items}
 
     outfit = {
         "success": True,
-        "message": "Recommendations available",
+        "message": "Recommendations available" if valid_ids else "No valid recommendations",
         "items": [],
         "style_phrase": ai_res_json.get("style_phrase", ""),
         "style_flair": ai_res_json.get("style_flair", ""),

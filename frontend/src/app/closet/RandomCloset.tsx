@@ -55,7 +55,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 			const itemId = selectedClothItem.id;
 			// const normalizedRecs = await fetchRecommendations(itemId);
 			const aiRecs = await fetchRecommendations(itemId);
-			// console.log("Normalized recResponse:", normalizedRecs);
+			console.log("recResponse from API:", aiRecs);
 
 			setRecResponse(aiRecs);
 		} catch (error) {
@@ -73,7 +73,6 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 			}`}
 		>
 			{/* Left Arrow */}
-
 			<div className="relative w-96 h-80 perspective-1000 group">
 				<button
 					onClick={prev}
@@ -127,22 +126,21 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 			<p className="mt-2 text-gray-500">Click an item to see suggestions</p>
 			{/* Recommendation Card */}
 			{selectedItem && (
-				<div className="mt-2 w-100 bg-white rounded-xl shadow-lg p-4">
+				<div className="mt-2 w-[90%] max-w-[600px] bg-white rounded-xl shadow-lg p-4">
 					{recIsLoading ? (
 						<div className="flex w-full flex-col items-center mt-6">
 							<div className="text-gray-700 italic text-md">
-								Analyzing your best fit......
+								Analyzing your best fit...... can take a moment!
 							</div>
 							<Loader />
 						</div>
 					) : recResponse && recResponse.items.length > 0 ? (
 						<>
-							<h3 className="font-bold text-lg mb-2">
-								Suggested items for {'"'}
-								{selectedItem.name}
-								{'"'}
+							<h3 className=" text-lg mb-2">
+								Suggested items for: <br />
+								<span className="font-bold italic">"{selectedItem.name}"</span>
 							</h3>
-							<div className="space-y-0.8 text-sm">
+							<div className="space-y-0.8 text-sm mb-4">
 								{recResponse?.style_phrase && (
 									<div className="grid grid-cols-[55px_auto] md:grid-cols-[65px_auto] gap-1">
 										<div className="text-gray-700 font-semibold">Theme:</div>
@@ -160,21 +158,21 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 									</div>
 								)}
 							</div>
-							<div className="flex gap-4 overflow-x-auto mt-5 px-2 py-2">
+							<div className="flex gap-4 overflow-x-auto px-2 py-2">
 								{recResponse?.items.map((item) => (
 									<div
 										key={item.id}
-										className="min-w-[120px] max-w-[180px] flex-shrink-0 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform cursor-pointer"
+										className="w-[200px] flex-shrink-0 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform cursor-pointer"
 										onClick={() => setModalItem(item)}
 									>
-										{/* Wrapper div for positioning and sizing the image */}
-										<div className="relative w-full h-32">
+										<div className="relative w-full h-[200px]">
 											<Image
 												fill
 												src={item.image_url}
 												alt={item?.name}
 												className="object-cover"
-												sizes="(max-width: 180px) 180px, 120px"
+												sizes="200px"
+												quality={90}
 											/>
 										</div>
 										<div className="p-1 text-xs text-gray-700">
@@ -207,14 +205,14 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 						transition={{ duration: 0.2 }}
 					>
 						<button
-							className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 cursor-pointer"
+							className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 cursor-pointer z-5"
 							onClick={() => setModalItem(null)}
 						>
 							<X size={26} />
 						</button>
 
 						<div
-							className={`relative w-full mb-3 ${
+							className={`relative w-full h-100 mb-3 ${
 								imgLoaded ? "opacity-100" : "opacity-0"
 							}`}
 						>
@@ -223,8 +221,8 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 								src={modalItem.image_url}
 								alt={modalItem?.name}
 								onLoad={() => setImgLoaded(true)}
-								className="object-cover rounded-lg transition-opacity duration-300"
-								sizes="100vw"
+								className="object-contain rounded-lg transition-opacity duration-300"
+								sizes="(max-width: 768px) 100vw, 400px"
 							/>
 						</div>
 
