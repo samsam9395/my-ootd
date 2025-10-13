@@ -1,6 +1,3 @@
-# from sentence_transformers import SentenceTransformer, util
-# import torch
-
 import ast
 from app.cloth.db_service import get_all_cloth_embedding, get_details_for_ids
 

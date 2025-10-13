@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 
 from app.auth.auth_utils import token_required
 from .recommendation_service import recommend_outfit

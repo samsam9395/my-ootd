@@ -24,7 +24,7 @@ def get_supabase():
     if _supabase is None:
         _supabase = create_client(
             current_app.config["SUPABASE_URL"],
-            current_app.config["SUPABASE_KEY"]
+            current_app.config["SUPABASE_KEY"],
         )
     return _supabase
 
