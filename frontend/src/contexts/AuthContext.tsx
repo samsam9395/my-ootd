@@ -68,7 +68,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 					setAccessToken(data.access_token);
 					setUser(data.user);
 				} catch (err) {
-					console.error("[REFRESH] Failed!", err);
 					apiClient.setToken(null); // ✅ Clear token immediately too
 					setAccessToken(null);
 					setUser(null);
@@ -91,13 +90,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		// Add safety timeout in case rehydrate never completes
 		const safetyTimeout = setTimeout(() => {
 			if (!hasCheckedRefresh) {
-				console.warn("[SAFETY] Force-setting hasCheckedRefresh after 12s");
 				setHasCheckedRefresh(true);
 			}
 		}, 12000);
 
 		rehydrate().catch((err) => {
-			console.error("[MOUNT] Rehydrate failed:", err);
 			// Ensure loader is removed even if rehydrate fails catastrophically
 			setHasCheckedRefresh(true);
 		});

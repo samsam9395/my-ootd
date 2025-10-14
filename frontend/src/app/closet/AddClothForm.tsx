@@ -117,7 +117,6 @@ export default function AddClothForm({
 			const clothResp = await addUpdateCloth(clothPayload);
 
 			if (!clothResp) {
-				console.log("clothResp is null");
 				throw new Error("No data returned from server");
 			}
 

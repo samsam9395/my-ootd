@@ -36,7 +36,7 @@ export default function Header() {
 						<button
 							type="button"
 							onClick={handleLogout}
-							className="text-left w-full"
+							className="text-left w-full cursor-pointer"
 						>
 							Logout
 						</button>

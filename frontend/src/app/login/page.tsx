@@ -30,7 +30,6 @@ function LoginPage() {
 			setUser(data.user);
 			router.push("/closet");
 		} catch (err: any) {
-			console.error("Login error:", err);
 			setError(err.message);
 		} finally {
 			hideLoader();

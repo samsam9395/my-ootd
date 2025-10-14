@@ -34,10 +34,7 @@ export default function RandomCloset({
 
 	// Log selection
 	useEffect(() => {
-		if (selectedCloth !== null) {
-			console.log("Selected cloth:", randomItemsArr[selectedCloth]);
-			recommendClothes(randomItemsArr[selectedCloth]);
-		}
+		if (selectedCloth !== null) recommendClothes(randomItemsArr[selectedCloth]);
 	}, [selectedCloth]);
 
 	const prev = () => {
@@ -59,9 +56,8 @@ export default function RandomCloset({
 		setRecIsLoading(true);
 		try {
 			const itemId = selectedClothItem.id;
-			// const normalizedRecs = await fetchRecommendations(itemId);
+
 			const aiRecs = await fetchRecommendations(itemId);
-			console.log("recResponse from API:", aiRecs);
 
 			setRecResponse(aiRecs);
 		} catch (error) {

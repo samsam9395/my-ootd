@@ -58,7 +58,7 @@ function ClosetContent() {
 			try {
 				setRandomIsLoading(true);
 				const data = await getRandomClothes();
-				setRandomItemsArr(data);
+				setRandomItemsArr(data || []);
 			} catch (error) {
 				console.error("Error fetching random clothes:", error);
 			} finally {

@@ -52,7 +52,6 @@ export default function SignupPage() {
 			setUser(data.user);
 			router.push("/login");
 		} catch (err: any) {
-			console.error(err);
 			setError(err.message || "Something went wrong. Try again.");
 		} finally {
 			hideLoader();

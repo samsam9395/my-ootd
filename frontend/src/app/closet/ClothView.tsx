@@ -39,8 +39,6 @@ export default function ClothView({
 	const [hasTriedAISuggestions, setHasTriedAISuggestions] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 
-	console.log("in ClothView, fetchItems[selectedClothIndex]:", item);
-
 	const handleFetchRecommendations = async (itemId: number) => {
 		try {
 			setHasTriedAISuggestions(true);

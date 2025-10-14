@@ -17,7 +17,6 @@ function ClothViewRecommendations({
 	hasTriedAISuggestions,
 	onFetchRecommendations,
 }: ClothViewRecommendationsProps) {
-	console.log("recommendations:", recommendations);
 	return (
 		<div className="flex-1 flex flex-col gap-4 w-full max-w-3xl mx-auto md:overflow-y-auto mt-4 md:mt-0">
 			{/* Generate button */}
