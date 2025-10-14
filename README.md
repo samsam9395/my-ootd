@@ -8,6 +8,8 @@ Check out the live application here: **[My OOTD Demo](https://my-ootd.vercel.app
 
 For a quick tour, the login fields are **pre-filled with a shared demo account**. Just click the login button to start exploring!
 
+<br>
+
 ## 📌 Key Features
 
 - **User Authentication:** Secure sign up and login with robust JWT authentication\*\*, refresh tokens, and session management
@@ -25,6 +27,8 @@ For a quick tour, the login fields are **pre-filled with a shared demo account**
 |                               **AI Outfit Suggestion**                               |                                  **Random Daily Inspiration**                                  |
 |     ![Screenshot of Outfit Suggestions](./assets/readme/screenshot_view_rec.png)     | ![Screenshot of Random Outfit and it's suggestions](./assets/readme/screenshot_random_rec.png) |
 
+<br>
+
 ## 📌 Tech Stack
 
 | Category       | Technology                                                                  | Details                                                                           |
@@ -33,6 +37,8 @@ For a quick tour, the login fields are **pre-filled with a shared demo account**
 | **Backend**    | **Flask** (Python), **Supabase** (PostgreSQL)                               | Backend running on **Render**. Supabase handles the database and cron jobs.       |
 | **AI / ML**    | **Hugging Face Inference API**, **OpenRouter (NVIDIA Nemotron-Nano-9B-V2)** | Used for embedding generation, similarity matching, and contextual outfit advice. |
 | **Deployment** | **Vercel** & **Render**                                                     | Full deployment pipeline for both frontend and backend.                           |
+
+<br>
 
 ## 👘 The AI Pipeline: How It Generates Your Outfit
 
@@ -54,6 +60,9 @@ The top matches from the filtering stage are handed off to the AI for final sele
 - **LLM as a Stylist:** I use a **pretrained LLM** (e.g., NVIDIA Nemotron-Nano) via API, treating it as a reasoning engine.
 - **Prompt Engineering:** I spent time **refining the prompts** that go to the LLM. This ensures the AI doesn't just pick random items, but selects a single, cohesive outfit and generates a helpful description based on the style tags.
 
+<br>
+
+
 ## ✏️📓 My Deployment Journey & What I Fixed
 
 The path to deployment was tricky due to memory limits, but solving these problems led to a much more robust product.
@@ -61,11 +70,17 @@ The path to deployment was tricky due to memory limits, but solving these proble
 | The Problem             | What I Tried First (and Failed)                                                                                      | The Production Solution                                                                                                                                                                                            |
 | :---------------------- | :------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Server Memory Limit** | Tried to load the **`sentence-transformers`** model directly onto the free **Render** server to generate embeddings. | **The Fix:** The model instantly exceeded the memory limit. I **migrated to the Hugging Face Inference API** to offload the heavy model calculation, keeping the backend stable and light.                         |
-| **Too Many API Calls**  | Initially generated embeddings on-demand every time a user asked for a recommendation.                               | **The Fix:** This was inefficient. I implemented **pre-generation and caching logic** so that each item's embedding is calculated only once and stored for 10 minutes, saving on API usage and speeding up the UI. |
+| **Slow Response & API Cost**  | Initially generated embeddings on-demand every time a user asked for a recommendation.                               | **The Fix:** This was inefficient. I implemented **pre-generation and caching logic** so that each item's embedding is calculated only once and stored for 10 minutes, saving on API usage and response time for the user. |
+
+<br>
+
 
 ## 👔 Project Status
 
-This project is currently in active development and serves as a demonstration of my full-stack skills for my portfolio! ☺️
+This project is currently in active development and serves as a demonstration of my full-stack skills! ☺️
+
+<br>
+
 
 ## 📁 Future Improvements
 
