@@ -61,16 +61,14 @@ export default function SignupPage() {
 
 	return (
 		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-				<div className="relative mx-auto h-[50px] w-[200px]">
-					<Image
-						fill
-						alt="OOTD Logo"
-						src={logo.src}
-						className="object-contain"
-						sizes="(max-width: 640px) 100vw, 200px"
-					/>
-				</div>
+			<div className="sm:mx-auto sm:w-full sm:max-w-sm flex flex-col items-center">
+				<Image
+					width={250}
+					height={250}
+					alt="OOTD Logo"
+					src={logo.src}
+					className="object-contain"
+				/>
 				<h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
 					Create your account
 				</h2>

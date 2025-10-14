@@ -9,6 +9,7 @@ import { ClothItem, StyleTag } from "@/types";
 import { getRandomClothes, getStyleTags } from "@/utils/api/clothes";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu } from "lucide-react";
+import Loader from "@/components/common/loader";
 
 const categories = [
 	"all",
@@ -28,6 +29,7 @@ function ClosetContent() {
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [dbTagStyles, setDbTagStyles] = useState<StyleTag[]>([]);
 	const [randomItemsArr, setRandomItemsArr] = useState([]);
+	const [randomIsLoading, setRandomIsLoading] = useState(true);
 	const [newCloth, setNewCloth] = useState<ClothItem | null>(null);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -53,8 +55,15 @@ function ClosetContent() {
 
 	useEffect(() => {
 		async function fetchRandomItems() {
-			const data = await getRandomClothes();
-			setRandomItemsArr(data);
+			try {
+				setRandomIsLoading(true);
+				const data = await getRandomClothes();
+				setRandomItemsArr(data);
+			} catch (error) {
+				console.error("Error fetching random clothes:", error);
+			} finally {
+				setRandomIsLoading(false);
+			}
 		}
 		fetchRandomItems();
 	}, []);
@@ -121,10 +130,23 @@ function ClosetContent() {
 					</p>
 				</div>
 
-				<RandomCloset
-					randomItemsArr={randomItemsArr}
-					handleSideBarClose={() => setSidebarOpen(false)}
-				/>
+				{randomIsLoading ? (
+					<Loader />
+				) : randomItemsArr.length === 0 ? (
+					<div className="flex w-full flex-col items-center mt-6">
+						<div className="text-gray-700 text-lg mb-2">
+							<div>
+								Hold up! Your closet is currently sunbathing. <br />
+								Click that 'Add' button to bring the fashion party!
+							</div>
+						</div>
+					</div>
+				) : (
+					<RandomCloset
+						randomItemsArr={randomItemsArr}
+						handleSideBarClose={() => setSidebarOpen(false)}
+					/>
+				)}
 
 				<div className="w-full px-6">
 					<Gallery

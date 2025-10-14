@@ -14,8 +14,8 @@ function LoginPage() {
 	const { setUser, setAccessToken } = useAuth();
 	const { showLoader, hideLoader } = useLoader();
 
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const [email, setEmail] = useState("sammimi@gmail.com");
+	const [password, setPassword] = useState("Test123456");
 	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -39,16 +39,14 @@ function LoginPage() {
 
 	return (
 		<div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 justify-self-center">
-			<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-				<div className="relative mx-auto h-[50px] w-[200px]">
-					<Image
-						fill
-						alt="OOTD Logo"
-						src={logo.src}
-						className="object-contain"
-						sizes="(max-width: 640px) 100vw, 200px"
-					/>
-				</div>
+			<div className="sm:mx-auto sm:w-full sm:max-w-sm flex flex-col items-center">
+				<Image
+					width={250}
+					height={250}
+					alt="OOTD Logo"
+					src={logo.src}
+					className="object-contain"
+				/>
 				<h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
 					Sign in to your account
 				</h2>
@@ -74,7 +72,7 @@ function LoginPage() {
 								name="email"
 								type="email"
 								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								onChange={(e) => setEmail(e.target.value.toLowerCase().trim())}
 								required
 								autoComplete="email"
 								className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
