@@ -1,7 +1,5 @@
 
 from flask import Blueprint, request, jsonify
-import os
-
 from app.auth.auth_utils import token_required
 
 # define the blueprint
