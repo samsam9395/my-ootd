@@ -2,47 +2,73 @@
 
 A full-stack wardrobe management application that helps users organize their clothing and get AI-powered outfit suggestions based on their personal inventory.
 
-## Features
+## 🚀 Live Demo
 
-- **User Authentication** – Secure sign up and login with JWT-based authentication, refresh tokens, and session management
-- **Clothing Management** – Add, edit, and organize clothing items in your digital wardrobe
-- **Style Tagging** – Categorize items by colour, name, type, and style (clean-fit, street, classic, etc.)
-- **AI Outfit Set Suggestions** – Get personalized outfit recommendations when you select an item (e.g., pick a top and receive suggestions for bottoms, shoes and accessories)
-- **Lucky Items of the Day** – Discover random outfit inspiration from your wardrobe
+Check out the live application here: **[My OOTD Demo](https://my-ootd.vercel.app/login)**
 
-## Tech Stack
+For a quick tour, the login fields are **pre-filled with a shared demo account**. Just click the login button to start exploring!
 
-**Frontend:**
+## 📌 Key Features
 
-- Next.js (TypeScript)
-- React
-- Tailwind CSS
+- **User Authentication:** Secure sign up and login with robust JWT authentication\*\*, refresh tokens, and session management
+- **Digital Closet:** Easily add, edit, and organize all your clothes, tagging them by color, type, and custom **style tags** _(i.e. clean-fit, edgy etc.)_
+- **AI Outfit Set Suggestions:** Get personalized outfit recommendations when you select an item _(e.g., pick a top and receive suggestions for bottoms, shoes and accessories)_ powered by a unique **two-stage AI pipeline**
+- **Lucky Inspiration:** The "Lucky Items of the Day" feature helps you discover random, fun outfit ideas from your existing wardrobe
 
-**Backend:**
+<br>
 
-- Flask (Python)
-- Supabase (PostgreSQL database)
-- JWT authentication with secure cookies
+## 📷 Screenshots
 
-**AI/ML:**
+|                               **Digital Closet View**                                |                                   **Item Tagging & Editing**                                   |
+| :----------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------: |
+| ![Screenshot of Edit mode for each item](./assets/readme/screenshot_closet_page.png) |      ![Screenshot of Edit mode for each item](./assets/readme/screenshot_edit_cloth.png)       |
+|                               **AI Outfit Suggestion**                               |                                  **Random Daily Inspiration**                                  |
+|     ![Screenshot of Outfit Suggestions](./assets/readme/screenshot_view_rec.png)     | ![Screenshot of Random Outfit and it's suggestions](./assets/readme/screenshot_random_rec.png) |
 
-- NVIDIA Nemotron-Nano-9B-V2 (free) LLM for outfit generation
-- Hugging Face embeddings for semantic similarity matching
-- Cosine similarity prefiltering for improved performance
+## 📌 Tech Stack
 
-## How It Works
+| Category       | Technology                                                                  | Details                                                                           |
+| :------------- | :-------------------------------------------------------------------------- | :-------------------------------------------------------------------------------- |
+| **Frontend**   | **Next.js** (TypeScript), **React**, **Tailwind CSS**                       | Hosted on **Vercel** for fast performance.                                        |
+| **Backend**    | **Flask** (Python), **Supabase** (PostgreSQL)                               | Backend running on **Render**. Supabase handles the database and cron jobs.       |
+| **AI / ML**    | **Hugging Face Inference API**, **OpenRouter (NVIDIA Nemotron-Nano-9B-V2)** | Used for embedding generation, similarity matching, and contextual outfit advice. |
+| **Deployment** | **Vercel** & **Render**                                                     | Full deployment pipeline for both frontend and backend.                           |
 
-1. Users upload their clothing items with details (name, type, colour, style tags)
-2. When selecting an item, the app uses Hugging Face embeddings to prefilter compatible items via cosine similarity
-3. NVIDIA's (free) LLM generates contextual outfit suggestions based on the filtered results
-4. Automated cleanup of revoked tokens runs via Supabase cron jobs
+## 👘 The AI Pipeline: How It Generates Your Outfit
 
-## Project Status
+The hardest part of this project was building an AI recommendation system that was both smart and fast, especially while using free cloud resources. Here's the **two-step pipeline** I built to make it work:
 
-This is an active development project for portfolio demonstration of fullstack skills.
+### 1. Fast Filtering with Embeddings
 
-## Future Improvements
+This stage quickly narrows down thousands of items to a relevant few.
 
-- Implement password reset and email confirmation flows for improved account security
-- Auto image tagging with AI when users upload items
-- Generate a single image for an outfit set for sharing
+- **Rule-Based Pre-Selection:** A simple logic layer determines compatible item categories _before_ the main processing. _(Ex: selecting a **Top** includes bottoms and shoes, while selecting a **Dress** automatically excludes top and bottom categories)_.
+- **Semantic Matching:** The app finds the best complementary items by calculating the **cosine similarity** between their pre-generated embeddings.
+- **Efficiency:** Embeddings for all user items are **calculated once and stored** in the database when an item is created or updated.
+- **Smart Caching:** To prevent unnecessary and costly API calls, I implemented a **10-minute cache** for user embeddings, drastically improving speed when users browse many outfits at once.
+
+### 2. Contextual Selection with an LLM
+
+The top matches from the filtering stage are handed off to the AI for final selection and style advice.
+
+- **LLM as a Stylist:** I use a **pretrained LLM** (e.g., NVIDIA Nemotron-Nano) via API, treating it as a reasoning engine.
+- **Prompt Engineering:** I spent time **refining the prompts** that go to the LLM. This ensures the AI doesn't just pick random items, but selects a single, cohesive outfit and generates a helpful description based on the style tags.
+
+## ✏️📓 My Deployment Journey & What I Fixed
+
+The path to deployment was tricky due to memory limits, but solving these problems led to a much more robust product.
+
+| The Problem             | What I Tried First (and Failed)                                                                                      | The Production Solution                                                                                                                                                                                            |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Server Memory Limit** | Tried to load the **`sentence-transformers`** model directly onto the free **Render** server to generate embeddings. | **The Fix:** The model instantly exceeded the memory limit. I **migrated to the Hugging Face Inference API** to offload the heavy model calculation, keeping the backend stable and light.                         |
+| **Too Many API Calls**  | Initially generated embeddings on-demand every time a user asked for a recommendation.                               | **The Fix:** This was inefficient. I implemented **pre-generation and caching logic** so that each item's embedding is calculated only once and stored for 10 minutes, saving on API usage and speeding up the UI. |
+
+## 👔 Project Status
+
+This project is currently in active development and serves as a demonstration of my full-stack skills for my portfolio! ☺️
+
+## 📁 Future Improvements
+
+- Implement proper password reset and email verification flows.
+- Add **AI-powered image tagging** to automatically suggest color and style when a user uploads a new item.
+- Generate a single **outfit composite image** for easy sharing.
