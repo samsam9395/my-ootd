@@ -56,7 +56,7 @@ export const login = async ({ email, password }: LoginPayload): Promise<LoginRes
         body: JSON.stringify({ email, password }),
         credentials: "include", // important for refresh_token cookie
     });
-    console.log('response from login api:', res);
+
     if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Login failed");

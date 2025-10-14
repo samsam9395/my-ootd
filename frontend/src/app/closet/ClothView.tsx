@@ -77,7 +77,7 @@ export default function ClothView({
 						{/* Manage Button */}
 						<button
 							onClick={handleManageClick}
-							className="absolute top-4 left-4 text-black font-bold z-20 cursor-pointer"
+							className="absolute top-4 left-4 font-bold z-20 text-gray-400 hover:text-gray-600  cursor-pointer"
 							aria-label="Manage"
 						>
 							<Ellipsis size={24} />
@@ -86,7 +86,7 @@ export default function ClothView({
 						{/* Close button */}
 						<button
 							onClick={onClose}
-							className="absolute top-4 right-4 text-black font-bold z-20 cursor-pointer"
+							className="absolute top-4 right-4 font-bold z-20 text-gray-400 hover:text-gray-600  cursor-pointer"
 							aria-label="Close"
 						>
 							<X size={24} />

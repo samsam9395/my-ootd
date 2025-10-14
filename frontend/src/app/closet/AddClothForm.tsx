@@ -210,7 +210,7 @@ export default function AddClothForm({
 			<div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-lg relative">
 				<button
 					onClick={handleClose}
-					className="absolute top-4 right-4 font-bold text-lg cursor-pointer"
+					className="absolute top-4 right-4 font-bold text-lg cursor-pointer text-gray-400 hover:text-gray-600 "
 				>
 					<X size={24} />
 				</button>

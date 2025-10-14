@@ -3,6 +3,7 @@ import { clothingTypes } from "./Gallery";
 import { AddUpdateClothPayload, StyleTag } from "@/types";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLoader } from "@/contexts/FullLoaderContext";
+import ConfirmationModal from "@/components/common/ConfirmModal";
 
 type ClothViewEditFormProps = {
 	item: any;
@@ -26,6 +27,8 @@ export default function ClothViewEditForm({
 	const [newStyles, setNewStyles] = useState<StyleTag[]>([]);
 	const [newStyleInput, setNewStyleInput] = useState("");
 	const [allStylesUI, setAllStylesUI] = useState<StyleTag[]>([]);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [itemToDeleteId, setItemToDeleteId] = useState<number | null>(null);
 
 	const { showAlert } = useAlert();
 	const { showLoader, hideLoader } = useLoader();
@@ -86,6 +89,20 @@ export default function ClothViewEditForm({
 				hideLoader();
 			}, 500);
 		}
+	};
+
+	const handleDeleteClick = (itemId: number) => {
+		if (!itemId) return;
+		setItemToDeleteId(itemId);
+		setIsDeleteModalOpen(true);
+	};
+
+	const handleConfirmDelete = () => {
+		if (itemToDeleteId) {
+			onDelete(itemToDeleteId); // Perform the actual deletion
+		}
+		setIsDeleteModalOpen(false); // Close the modal
+		setItemToDeleteId(null); // Clear the stored ID
 	};
 
 	useEffect(() => {
@@ -196,25 +213,24 @@ export default function ClothViewEditForm({
 			{/* Save */}
 			<button
 				type="submit"
-				className="bg-black text-white py-2 px-4 rounded cursor-pointer"
+				className=" py-2 px-4 cursor-pointer rounded-lg bg-gray-800 text-white hover:bg-black transition shadow-md mb-15"
 			>
 				Save Changes
 			</button>
 
+			{/* The Confirmation Modal */}
+			<ConfirmationModal
+				isOpen={isDeleteModalOpen}
+				onClose={() => setIsDeleteModalOpen(false)}
+				onConfirm={handleConfirmDelete}
+				itemTitle={item.name || "this item"}
+			/>
+
 			{/* Delete */}
 			<button
 				type="button"
-				onClick={() => {
-					console.log("deleting item", item.id);
-					if (
-						window.confirm(
-							"Are you sure you want to delete this item? This action cannot be undone."
-						)
-					) {
-						onDelete(item.id);
-					}
-				}}
-				className="bg-red-500 text-white py-2 px-4 rounded mt-4 cursor-pointer"
+				onClick={() => handleDeleteClick(item.id)}
+				className=" py-2 px-4 mt-4  text-white bg-red-600 rounded-lg hover:bg-red-700 transition shadow-md cursor-pointer"
 			>
 				Delete Item
 			</button>
