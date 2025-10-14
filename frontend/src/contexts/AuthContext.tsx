@@ -46,13 +46,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const rehydrate = useCallback(
 		async (triggerUrl?: string) => {
 			if (refreshPromiseRef.current) {
-				console.log(
-					`[QUEUE] Refresh already in progress, ${triggerUrl} waiting...`
-				);
 				return refreshPromiseRef.current;
 			}
-
-			console.log(`[REFRESH] Triggered by: ${triggerUrl}`);
 
 			refreshPromiseRef.current = (async () => {
 				try {
@@ -65,14 +60,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 						refreshAccessToken(),
 						timeoutPromise,
 					])) as Awaited<ReturnType<typeof refreshAccessToken>>;
-					console.log(
-						"[REFRESH] Got new token:",
-						data.access_token.slice(0, 10) + "..."
-					);
 
 					// ✅ Set token IMMEDIATELY on apiClient (synchronous)
 					apiClient.setToken(data.access_token);
-					console.log("[REFRESH] Token set on apiClient");
 
 					// Then update React state (async)
 					setAccessToken(data.access_token);
@@ -86,7 +76,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 						router.push("/login");
 					}
 				} finally {
-					console.log("[REFRESH] Done, clearing promise");
 					refreshPromiseRef.current = null;
 					setHasCheckedRefresh(true);
 				}
@@ -119,7 +108,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	useEffect(() => {
 		// Set the global 401 handler once
 		apiClient.setOnUnauthorized(async (url: string) => {
-			console.log("setting unauthorized to:", url);
 			await rehydrate(url);
 		});
 
@@ -131,10 +119,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 	// Sync token with apiClient whenever it changes
 	useEffect(() => {
-		console.log("apiClient token synced from state:", accessToken);
 		apiClient.setToken(accessToken);
 	}, [accessToken]);
-	console.log("hasCheckedRefresh:", hasCheckedRefresh);
 
 	return (
 		<AuthContext.Provider

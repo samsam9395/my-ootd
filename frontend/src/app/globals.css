@@ -58,3 +58,22 @@ body {
 .animate-scaleIn {
 	animation: scaleIn 0.2s ease-out forwards;
 }
+
+/**
+ * =================================================================
+ * Z-INDEX STRATEGY DEFINITION (Defined in tailwind.config.js)
+ * -----------------------------------------------------------------
+ * A standardized stacking context to manage component layering:
+ *
+ * | Semantic Name        | Value | Purpose                                 |
+ * |----------------------|-------|-----------------------------------------|
+ * | z-default            | 1     | Minor stacking context, small popovers  |
+ * | z-header             | 50    | App Header (Base UI)       |
+ * | z-sidebar-backdrop   | 100   | Mobile Sidebar Overlay/Dimming          |
+ * | z-sidebar            | 101   | Mobile Sidebar Panel (Above its backdrop)|
+ * | z-modal              | 200   | AddModal/Cloth+RandomClothView		    |
+ * | z-alert              | 500   | System Alerts, Toasts, Popups           |
+ * -----------------------------------------------------------------
+ * Components should always close lower-priority UI (like the sidebar)
+ * =================================================================
+ */

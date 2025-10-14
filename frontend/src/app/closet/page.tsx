@@ -121,7 +121,10 @@ function ClosetContent() {
 					</p>
 				</div>
 
-				<RandomCloset randomItemsArr={randomItemsArr} />
+				<RandomCloset
+					randomItemsArr={randomItemsArr}
+					handleSideBarClose={() => setSidebarOpen(false)}
+				/>
 
 				<div className="w-full px-6">
 					<Gallery
@@ -129,6 +132,7 @@ function ClosetContent() {
 						dbTagStyles={dbTagStyles}
 						newCloth={newCloth}
 						onNewClothHandled={() => setNewCloth(null)}
+						handleSideBarClose={() => setSidebarOpen(false)}
 					/>
 				</div>
 			</main>

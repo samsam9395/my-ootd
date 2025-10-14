@@ -113,11 +113,12 @@ export default function AddClothForm({
 				colour,
 				styles: stylesPayload,
 			};
-			console.log("clothPayload:", clothPayload);
+
 			const clothResp = await addUpdateCloth(clothPayload);
 
 			if (!clothResp) {
 				console.log("clothResp is null");
+				throw new Error("No data returned from server");
 			}
 
 			const clothId = clothResp.cloth.id;
@@ -205,7 +206,7 @@ export default function AddClothForm({
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+		<div className="fixed inset-0 bg-black/50 z-200 flex items-center justify-center p-4">
 			{loading && <FullPageLoader />}
 			<div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-lg relative">
 				<button

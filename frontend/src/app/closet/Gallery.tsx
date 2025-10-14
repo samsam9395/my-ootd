@@ -32,6 +32,7 @@ type GalleryProps = {
 	dbTagStyles?: StyleTag[];
 	newCloth?: ClothItem | null;
 	onNewClothHandled?: () => void;
+	handleSideBarClose: () => void;
 };
 
 export default function Gallery({
@@ -39,6 +40,7 @@ export default function Gallery({
 	dbTagStyles,
 	newCloth,
 	onNewClothHandled,
+	handleSideBarClose,
 }: GalleryProps) {
 	const loaderRef = useRef<HTMLDivElement>(null);
 	const { showAlert } = useAlert();
@@ -148,18 +150,15 @@ export default function Gallery({
 			if (!savedRes.success) throw new Error("No data returned from server");
 
 			const savedItem = savedRes.cloth;
-			console.log("savedItem:", savedItem);
+
 			setFetchItems((prevItems) => {
 				const existingIndex = prevItems.findIndex(
 					(item) => item.id === savedItem.id
 				);
 
-				console.log("existingIndex:", existingIndex);
-
 				// If the cloth already exists in local list (update)
 				if (existingIndex !== -1) {
 					const oldItem = prevItems[existingIndex];
-					console.log("oldItem:", oldItem);
 
 					// Case 1: category changed → remove from current list
 					if (
@@ -201,7 +200,7 @@ export default function Gallery({
 		showLoader();
 		try {
 			const res = await deleteCloth(itemToDelete.id);
-			console.log("deletion res:", res);
+
 			if (res) {
 				// Remove item from local state
 				setFetchItems((prev) =>
@@ -224,7 +223,6 @@ export default function Gallery({
 	};
 
 	useEffect(() => {
-		console.log("in Gallery, newCloth:", newCloth);
 		if (newCloth) {
 			// only add if same category
 			if (newCloth.category === selectedCategory) {
@@ -239,7 +237,10 @@ export default function Gallery({
 				{fetchItems.map((item, index) => (
 					<div
 						key={index}
-						onClick={() => setSelectedClothIndex(index)}
+						onClick={() => {
+							handleSideBarClose();
+							setSelectedClothIndex(index);
+						}}
 						className="bg-white rounded-lg shadow-md cursor-pointer"
 					>
 						<div className="relative w-full h-64 sm:h-72 md:h-80 lg:h-96 rounded-t-lg">

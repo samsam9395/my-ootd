@@ -8,9 +8,15 @@ import Loader from "@/components/common/loader";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-type RandomClosetProps = { randomItemsArr: ClothItem[] };
+type RandomClosetProps = {
+	randomItemsArr: ClothItem[];
+	handleSideBarClose: () => void;
+};
 
-export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
+export default function RandomCloset({
+	randomItemsArr,
+	handleSideBarClose,
+}: RandomClosetProps) {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [selectedCloth, setSelectedCloth] = useState<number | null>(null);
 	const [modalItem, setModalItem] = useState<ClothItem | null>(null);
@@ -163,7 +169,10 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 									<div
 										key={item.id}
 										className="w-[200px] flex-shrink-0 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform cursor-pointer"
-										onClick={() => setModalItem(item)}
+										onClick={() => {
+											handleSideBarClose();
+											setModalItem(item);
+										}}
 									>
 										<div className="relative w-full h-[200px]">
 											<Image
@@ -192,7 +201,7 @@ export default function RandomCloset({ randomItemsArr }: RandomClosetProps) {
 			{/* Modal for large image */}
 			{modalItem && (
 				<div
-					className="fixed inset-0 bg-black/50 flex items-center justify-center z-50
+					className="fixed inset-0 bg-black/50 flex items-center justify-center z-200
                opacity-0 animate-fadeIn"
 					onClick={() => setModalItem(null)}
 				>

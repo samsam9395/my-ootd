@@ -32,7 +32,6 @@ export async function fetchRecommendations(itemId: number) {
 
 export const updateClothImage = async (clothId: number, imageUrl: string) => {
     const data = await apiClient.put(`/clothes/${clothId}/image`, { image_url: imageUrl })
-    console.log('update cloth image res:', data);
     return data
 }
 
