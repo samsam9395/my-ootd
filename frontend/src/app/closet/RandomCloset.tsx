@@ -74,13 +74,14 @@ export default function RandomCloset({
 				recIsLoading ? "pointer-events-none opacity-70" : ""
 			}`}
 		>
-			{/* Left Arrow */}
 			<div className="relative w-96 h-80 perspective-1000 group">
+				{/* Left Arrow */}
 				<button
 					onClick={prev}
-					className="absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 
-               bg-black/40 text-white p-3 rounded-full z-5 cursor-pointer
-               opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+					className="absolute top-1/2 left-2 -translate-y-1/2 
+  bg-black/40 text-white p-3 rounded-full z-30 cursor-pointer
+  md:left-0 md:-translate-x-full md:opacity-0 md:group-hover:opacity-100 
+  transition-opacity duration-300"
 				>
 					<ChevronLeft size={18} />
 				</button>
@@ -88,12 +89,14 @@ export default function RandomCloset({
 				{/* Right Arrow */}
 				<button
 					onClick={next}
-					className="absolute top-1/2 right-0 translate-x-full -translate-y-1/2 
-               bg-black/40 text-white p-3 rounded-full z-5 cursor-pointer
-               opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+					className="absolute top-1/2 right-2 -translate-y-1/2 
+  bg-black/40 text-white p-3 rounded-full z-30 cursor-pointer
+  md:right-0 md:translate-x-full md:opacity-0 md:group-hover:opacity-100 
+  transition-opacity duration-300"
 				>
 					<ChevronRight size={18} />
 				</button>
+
 				{/* RandomCloset images */}
 				{randomItemsArr?.map((item, i) => {
 					let diff = i - currentIndex;
@@ -104,12 +107,23 @@ export default function RandomCloset({
 					const zOffset = -Math.abs(diff) * 130;
 					const scale = diff === 0 ? 1 : 0.5;
 
+					// On mobile: stack behind center, on desktop: carousel effect
+					const isMobileTransform =
+						diff === 0
+							? `translate(-50%, -50%)`
+							: `translate(-50%, -50%) scale(0.85)`;
+
+					const isDesktopTransform = `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${zOffset}px) scale(${scale})`;
+
 					return (
 						<div
 							key={i}
 							className="absolute top-1/2 left-1/2 w-full h-72 rounded-xl shadow-lg transition-transform duration-300 cursor-pointer"
 							style={{
-								transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${zOffset}px) scale(${scale})`,
+								transform:
+									window.innerWidth < 768
+										? isMobileTransform
+										: isDesktopTransform,
 								zIndex: total - Math.abs(diff),
 							}}
 							onClick={() => setSelectedCloth(i)}
@@ -118,7 +132,7 @@ export default function RandomCloset({
 								fill
 								src={item.image_url}
 								alt={`clothing-${i}`}
-								className="object-cover"
+								className="object-cover rounded-xl"
 								sizes="100vw"
 							/>
 						</div>
