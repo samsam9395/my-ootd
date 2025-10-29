@@ -68,10 +68,11 @@ body {
  * | Semantic Name        | Value | Purpose                                 |
  * |----------------------|-------|-----------------------------------------|
  * | z-default            | 1     | Minor stacking context, small popovers  |
- * | z-header             | 50    | App Header (Base UI)       |
+ * | z-random-arrow       | 1     | Random outfit carousel arrows           |
+ * | z-header             | 50    | App Header (Base UI)                    |
  * | z-sidebar-backdrop   | 100   | Mobile Sidebar Overlay/Dimming          |
  * | z-sidebar            | 101   | Mobile Sidebar Panel (Above its backdrop)|
- * | z-modal              | 200   | AddModal/Cloth+RandomClothView		    |
+ * | z-modal              | 200   | AddModal/Cloth+RandomClothView          |
  * | z-alert              | 500   | System Alerts, Toasts, Popups           |
  * -----------------------------------------------------------------
  * Components should always close lower-priority UI (like the sidebar)
