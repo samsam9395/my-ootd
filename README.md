@@ -40,7 +40,15 @@ For a quick tour, the login fields are **pre-filled with a shared demo account**
 
 <br>
 
+## Database Schema
+
+![Screenshot of Random Outfit and it's suggestions](./assets/readme/supabase-db-schema.png)
+
+<br>
+
 ## 👘 The AI Pipeline: How It Generates Your Outfit
+
+<br>
 
 The hardest part of this project was building an AI recommendation system that was both smart and fast, especially while using free cloud resources. Here's the **two-step pipeline** I built to make it work:
 
@@ -62,25 +70,22 @@ The top matches from the filtering stage are handed off to the AI for final sele
 
 <br>
 
-
 ## ✏️📓 My Deployment Journey & What I Fixed
 
 The path to deployment was tricky due to memory limits, but solving these problems led to a much more robust product.
 
-| The Problem             | What I Tried First (and Failed)                                                                                      | The Production Solution                                                                                                                                                                                            |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Server Memory Limit** | Tried to load the **`sentence-transformers`** model directly onto the free **Render** server to generate embeddings. | **The Fix:** The model instantly exceeded the memory limit. I **migrated to the Hugging Face Inference API** to offload the heavy model calculation, keeping the backend stable and light.                         |
-| **Slow Response & API Cost**  | Initially generated embeddings on-demand every time a user asked for a recommendation.                               | **The Fix:** This was inefficient. I implemented **pre-generation and caching logic** so that each item's embedding is calculated only once and stored for 10 minutes, saving on API usage and response time for the user. |
+| The Problem                  | What I Tried First (and Failed)                                                                                      | The Production Solution                                                                                                                                                                                                    |
+| :--------------------------- | :------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Server Memory Limit**      | Tried to load the **`sentence-transformers`** model directly onto the free **Render** server to generate embeddings. | **The Fix:** The model instantly exceeded the memory limit. I **migrated to the Hugging Face Inference API** to offload the heavy model calculation, keeping the backend stable and light.                                 |
+| **Slow Response & API Cost** | Initially generated embeddings on-demand every time a user asked for a recommendation.                               | **The Fix:** This was inefficient. I implemented **pre-generation and caching logic** so that each item's embedding is calculated only once and stored for 10 minutes, saving on API usage and response time for the user. |
 
 <br>
-
 
 ## 👔 Project Status
 
 This project is currently in active development and serves as a demonstration of my full-stack skills! ☺️
 
 <br>
-
 
 ## 📁 Future Improvements
 
