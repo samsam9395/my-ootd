@@ -69,7 +69,6 @@ function ClosetContent() {
 	}, []);
 
 	return (
-		// ✅ FIX: Removed 'pt-16'. This removes the 64px gap at the top.
 		<div className="flex min-h-screen bg-white text-black font-sans lg:pt-0">
 			<AddClothForm
 				isOpen={isFormOpen}
@@ -80,6 +79,9 @@ function ClosetContent() {
 
 			{/* ----------------------------------------------------------------
                SIDEBAR
+               Fix: Changed Desktop style from 'static' to 'sticky'.
+               This allows z-30 to work, so the white background covers 
+               any carousel items overflowing from the main content.
             ---------------------------------------------------------------- */}
 			<aside
 				className={`
@@ -88,14 +90,18 @@ function ClosetContent() {
                     w-64 pt-24 pl-8 pr-6 shadow-2xl
                     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
                     
-                    lg:translate-x-0 lg:static lg:shadow-none lg:z-auto lg:pt-28 lg:pl-10
+                    /* Desktop Styles */
+                    lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:shadow-none lg:z-30 lg:pt-28 lg:pl-10
                 `}
 			>
-				<div className="sticky top-28">
+				{/* Note: We wrap the content in a div that is essentially static 
+                   within the sticky container to ensure stability.
+                */}
+				<div className="h-full overflow-y-auto hide-scrollbar">
 					<h2 className="font-serif text-3xl font-bold mb-10 italic text-black">
 						Categories
 					</h2>
-					<ul className="space-y-6">
+					<ul className="space-y-6 pb-10">
 						{categories.map((cat) => (
 							<li key={cat}>
 								<button
@@ -124,7 +130,7 @@ function ClosetContent() {
 			{/* ----------------------------------------------------------------
                MAIN CONTENT AREA
             ---------------------------------------------------------------- */}
-			<main className="flex-1 flex flex-col min-h-screen relative">
+			<main className="flex-1 flex flex-col min-h-screen relative z-0">
 				{/* MOBILE HEADER (Sticky) */}
 				<div className="lg:hidden sticky top-0 bg-[#050505] text-white p-3 z-40 flex justify-between items-center border-b border-white/10 shadow-md">
 					<button
@@ -162,7 +168,7 @@ function ClosetContent() {
 					</div>
 
 					{/* Random Picks Section */}
-					<div className="w-full mb-10">
+					<div className="w-full mb-10 relative">
 						<div className="flex items-center gap-4 mb-6">
 							<div className="h-[1px] w-8 bg-gray-300"></div>
 							<p className="font-serif text-lg italic text-gray-800">

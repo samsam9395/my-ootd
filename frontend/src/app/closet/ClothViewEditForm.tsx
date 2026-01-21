@@ -166,7 +166,6 @@ export default function ClothViewEditForm({
 									key={s.id}
 									type="button"
 									onClick={() => handleStyleToggle(s)}
-									// ✅ FIX: Added cursor-pointer, increased text size and padding
 									className={`
                                     px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-all rounded-none cursor-pointer
                                     ${

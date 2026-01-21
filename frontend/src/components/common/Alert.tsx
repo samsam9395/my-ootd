@@ -6,13 +6,16 @@ import { useEffect } from "react";
 export const Alert = () => {
 	const { alert, closeAlert } = useAlert();
 
-	// Logic: Auto-dismiss after 10 seconds
+	// Logic: Auto-dismiss
 	useEffect(() => {
 		if (!alert) return;
 
+		// Errors need more time to read (6s), Success shorter (3s)
+		const duration = alert.type === "error" ? 6000 : 3000;
+
 		const timer = setTimeout(() => {
 			closeAlert();
-		}, 10000); // 10000ms = 10s
+		}, duration);
 
 		return () => clearTimeout(timer);
 	}, [alert, closeAlert]);

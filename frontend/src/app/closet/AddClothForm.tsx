@@ -5,7 +5,7 @@ import FullPageLoader from "@/components/common/fullPageLoader";
 import { useAlert } from "@/contexts/AlertContext";
 import { updateClothImage, addUpdateCloth } from "@/utils/api/clothes";
 import { AddUpdateClothPayload, ClothItem, StyleTag } from "@/types";
-import { X } from "lucide-react";
+import { X, Upload, Plus } from "lucide-react";
 import { clothingTypes } from "./Gallery";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
@@ -22,7 +22,7 @@ export default function AddClothForm({
 	isOpen,
 	onClose,
 	existingCloth,
-	dbTagStyles = [], // styles already in DB
+	dbTagStyles = [],
 	onAddCloth,
 }: AddClothFormProps) {
 	const { user } = useAuth();
@@ -33,23 +33,22 @@ export default function AddClothForm({
 	const [loading, setLoading] = useState(false);
 	const { showAlert } = useAlert();
 
-	const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>([]); // {id, name}, contains all picked styles (new + existing)
+	const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>([]);
 	const [newStyles, setNewStyles] = useState<StyleTag[]>([]);
 	const [newStyleInput, setNewStyleInput] = useState("");
 	const [allStylesUI, setAllStylesUI] = useState<StyleTag[]>([]);
 	const [addStyleError, setAddStyleError] = useState("");
+
 	useEffect(() => {
 		if (dbTagStyles?.length) {
 			setAllStylesUI(dbTagStyles);
 		}
 	}, [dbTagStyles]);
 
-	// Add a new style (typed by user)
 	const handleAddNewStyle = () => {
 		const name = newStyleInput.trim().toLowerCase();
 		if (!name) return;
 
-		// simple validation
 		if (name.length > 20) {
 			setAddStyleError("Style name too long (max 20 chars).");
 			return;
@@ -59,19 +58,16 @@ export default function AddClothForm({
 			return;
 		}
 		setAddStyleError("");
-		// Avoid duplicates in selectedStyles
+
 		if (!selectedStyles.some((s) => s.name === name)) {
-			const fakeStyle: StyleTag = { id: "", name }; // fake id, DB will assign real id
+			const fakeStyle: StyleTag = { id: "", name };
 			setSelectedStyles([...selectedStyles, fakeStyle]);
 			setNewStyles([...newStyles, fakeStyle]);
-
-			// Add to UI list immediately
 			setAllStylesUI([...allStylesUI, fakeStyle]);
 			setNewStyleInput("");
 		}
 	};
 
-	// Toggle a style (existing or new)
 	const handleStyleToggle = (style: StyleTag) => {
 		if (selectedStyles.some((s) => s.name === style.name)) {
 			setSelectedStyles(selectedStyles.filter((s) => s.name !== style.name));
@@ -81,7 +77,6 @@ export default function AddClothForm({
 	};
 
 	const resetForm = () => {
-		// Reset form
 		setName("");
 		setColour("");
 		setType(clothingTypes[0].type);
@@ -100,13 +95,11 @@ export default function AddClothForm({
 		setLoading(true);
 
 		try {
-			// 1. Prepare styles payload: existing + new
 			const stylesPayload = [
 				...selectedStyles.map((s) => ({ id: s.id, name: s.name })),
 				...newStyles.map((s) => ({ name: s.name })),
 			];
 
-			// 2. Insert cloth + styles in backend
 			const clothPayload: AddUpdateClothPayload = {
 				name,
 				type,
@@ -116,25 +109,20 @@ export default function AddClothForm({
 
 			const clothResp = await addUpdateCloth(clothPayload);
 
-			if (!clothResp) {
-				throw new Error("No data returned from server");
-			}
+			if (!clothResp) throw new Error("No data returned from server");
 
 			const clothId = clothResp.cloth.id;
-
-			// 3. Upload image to Supabase
 			const shortUserId = user!.id.split("-")[0];
 			const publicUrl = await uploadImageToSupabase(
 				image,
 				clothId,
-				shortUserId
+				shortUserId,
 			);
+
 			if (!publicUrl) throw new Error("Image upload failed");
 
-			// 4. Update cloth with image_url
 			await updateClothImage(clothId, publicUrl);
 
-			// 5. Add new item to local state if it matches current category
 			const fullCloth = { ...clothResp.cloth, image_url: publicUrl };
 			onAddCloth?.(fullCloth);
 
@@ -153,11 +141,10 @@ export default function AddClothForm({
 		onClose();
 	};
 
-	// update image to supabase storage
 	const uploadImageToSupabase = async (
 		file: File,
 		clothId: number,
-		shortUserId: string
+		shortUserId: string,
 	) => {
 		const sanitizeFileName = (name: string) => {
 			return name
@@ -167,19 +154,14 @@ export default function AddClothForm({
 				.replace(/[^a-zA-Z0-9_\-\.]/g, "");
 		};
 
-		// Format today's date as YYYYMMDD
 		const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-		const fileName = `${shortUserId}-${clothId}-${sanitizeFileName(
-			file.name
-		)}-${today}`;
+		const fileName = `${shortUserId}-${clothId}-${sanitizeFileName(file.name)}-${today}`;
 
-		// Check if file with same name exists
 		const { data: existingFiles } = await supabase.storage
 			.from("clothes-images")
 			.list("", { search: fileName });
 
 		if (existingFiles && existingFiles.length > 0) {
-			// File already exists → reuse URL
 			const {
 				data: { publicUrl },
 			} = supabase.storage.from("clothes-images").getPublicUrl(fileName);
@@ -198,27 +180,41 @@ export default function AddClothForm({
 		const {
 			data: { publicUrl },
 		} = supabase.storage.from("clothes-images").getPublicUrl(fileName);
-
 		return publicUrl;
 	};
 
 	if (!isOpen) return null;
 
+	// Shared Styles
+	const labelClass =
+		"text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400 mb-2 block";
+	const inputClass =
+		"w-full border-b border-gray-300 focus:border-black py-2 text-sm font-medium focus:outline-none transition-colors bg-transparent placeholder-gray-300 rounded-none";
+
 	return (
-		<div className="fixed inset-0 bg-black/50 z-200 flex items-center justify-center p-4">
+		<div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
 			{loading && <FullPageLoader />}
-			<div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-lg relative">
+
+			{/* Modal Container: Brutalist Box */}
+			<form
+				onSubmit={handleSubmitEmbedded}
+				className="bg-white w-full max-w-5xl h-[85vh] border border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col md:flex-row overflow-hidden"
+			>
+				{/* Close Button */}
 				<button
+					type="button"
 					onClick={handleClose}
-					className="absolute top-4 right-4 font-bold text-lg cursor-pointer text-gray-400 hover:text-gray-600 "
+					className="absolute top-6 right-6 z-50 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
 				>
-					<X size={24} />
+					<X size={24} strokeWidth={1.5} />
 				</button>
-				<h2 className="text-xl font-semibold mb-4">Add / Update Closet</h2>
-				<form onSubmit={handleSubmitEmbedded} className="flex flex-col gap-4">
-					{/* Photo Upload */}
+
+				{/* --------------------------------------------------------
+                   LEFT SIDE: Image Upload (Interactive Area)
+                --------------------------------------------------------- */}
+				<div className="w-full md:w-1/2 h-[40vh] md:h-full bg-gray-50 border-b md:border-b-0 md:border-r border-black relative group">
 					<label
-						className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-black text-gray-500"
+						className="w-full h-full flex flex-col items-center justify-center cursor-pointer transition-colors hover:bg-gray-100"
 						onDrop={(e) => {
 							e.preventDefault();
 							if (e.dataTransfer.files && e.dataTransfer.files[0]) {
@@ -228,17 +224,36 @@ export default function AddClothForm({
 						onDragOver={(e) => e.preventDefault()}
 					>
 						{image ? (
-							<div className="relative w-32 h-32">
+							<div className="relative w-full h-full">
 								<Image
 									fill
 									src={URL.createObjectURL(image)}
-									alt="cloth"
-									className="object-cover rounded"
-									sizes="128px"
+									alt="preview"
+									className="object-contain p-8 mix-blend-multiply"
 								/>
+								<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+									<span className="text-white font-mono uppercase tracking-widest text-xs border border-white px-4 py-2">
+										Change Photo
+									</span>
+								</div>
 							</div>
 						) : (
-							<span>Click or Drag to Upload Photo</span>
+							<div className="flex flex-col items-center gap-4 p-8 text-center">
+								<div className="w-16 h-16 border border-dashed border-gray-400 rounded-full flex items-center justify-center group-hover:border-black group-hover:scale-110 transition-all">
+									<Upload
+										className="text-gray-400 group-hover:text-black"
+										size={24}
+									/>
+								</div>
+								<div>
+									<p className="font-serif text-xl italic text-gray-500 group-hover:text-black">
+										Upload Image
+									</p>
+									<p className="font-mono text-[10px] uppercase tracking-widest text-gray-400 mt-2">
+										Drag & Drop or Click
+									</p>
+								</div>
+							</div>
 						)}
 						<input
 							type="file"
@@ -247,100 +262,131 @@ export default function AddClothForm({
 							className="hidden"
 						/>
 					</label>
+				</div>
 
-					{/* Name */}
-					<div className="flex flex-col">
-						<label className="mb-1 font-medium">Name</label>
-						<input
-							type="text"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							placeholder="Enter cloth name"
-							className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-black"
-							required
-						/>
-					</div>
-
-					{/* Type (select) */}
-					<div className="flex flex-col">
-						<label className="mb-1 font-medium">Type</label>
-						<select
-							value={type}
-							onChange={(e) => setType(e.target.value)}
-							className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-black"
-						>
-							{clothingTypes.map((ct) => (
-								<option key={ct.type} value={ct.type}>
-									{ct.type}
-								</option>
-							))}
-						</select>
-					</div>
-
-					{/* Colour (text input) */}
-					<div className="flex flex-col">
-						<label className="mb-1 font-medium">Colour</label>
-						<input
-							type="text"
-							value={colour}
-							onChange={(e) => setColour(e.target.value)}
-							placeholder="Enter colour (e.g., beige, navy blue)"
-							className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-black"
-							required
-						/>
-					</div>
-
-					{/* Styles */}
-					<div className="flex flex-col">
-						<label className="mb-1 font-medium">Styles</label>
-						{allStylesUI && (
-							<div className="flex flex-wrap gap-2 mb-4 ">
-								{allStylesUI.map((s) => (
-									<button
-										key={s.id}
-										type="button"
-										onClick={() => handleStyleToggle(s)}
-										className={`px-3 py-1 rounded-full border cursor-pointer ${
-											selectedStyles.some((style) => style.name === s.name)
-												? "bg-gray-400 text-white "
-												: "border-gray-300 text-gray-700 hover:border-black"
-										}`}
-									>
-										{s.name}
-									</button>
-								))}
-							</div>
-						)}
-						<div className="flex gap-2 ">
-							<input
-								type="text"
-								value={newStyleInput}
-								onChange={(e) => setNewStyleInput(e.target.value)}
-								placeholder="Add new style"
-								className="flex-1 border border-gray-600  rounded p-2 focus:outline-none focus:ring-1 focus:border-black"
-							/>
-							<button
-								type="button"
-								onClick={handleAddNewStyle}
-								className="  bg-gray-500 text-white px-4 py-2 rounded hover:bg-black cursor-pointer"
-							>
-								Add
-							</button>
+				{/* --------------------------------------------------------
+                   RIGHT SIDE: Form Inputs
+                --------------------------------------------------------- */}
+				<div className="w-full md:w-1/2 flex flex-col h-full bg-white">
+					<div className="flex-1 overflow-y-auto p-8 md:p-12 pt-12">
+						{/* Header */}
+						<div className="mb-10 border-b border-gray-100 pb-4">
+							<h2 className="font-serif text-4xl italic text-black mb-2">
+								New Arrival
+							</h2>
+							<p className="font-mono text-xs text-gray-400 uppercase tracking-widest">
+								Digitize your wardrobe
+							</p>
 						</div>
-						{addStyleError && (
-							<div className="text-red-500">{addStyleError}</div>
-						)}
+
+						<div className="flex flex-col gap-8">
+							{/* Name */}
+							<div>
+								<label className={labelClass}>Item Name</label>
+								<input
+									type="text"
+									value={name}
+									onChange={(e) => setName(e.target.value)}
+									placeholder="E.g. Vintage Denim Jacket"
+									className={`${inputClass} text-lg`}
+									required
+								/>
+							</div>
+
+							<div className="grid grid-cols-2 gap-8">
+								{/* Type */}
+								<div>
+									<label className={labelClass}>Category</label>
+									<select
+										value={type}
+										onChange={(e) => setType(e.target.value)}
+										className={inputClass}
+									>
+										{clothingTypes.map((ct) => (
+											<option key={ct.type} value={ct.type}>
+												{ct.type}
+											</option>
+										))}
+									</select>
+								</div>
+
+								{/* Colour */}
+								<div>
+									<label className={labelClass}>Colour</label>
+									<input
+										type="text"
+										value={colour}
+										onChange={(e) => setColour(e.target.value)}
+										placeholder="E.g. Navy"
+										className={inputClass}
+										required
+									/>
+								</div>
+							</div>
+
+							{/* Styles */}
+							<div>
+								<label className={labelClass}>Style Tags</label>
+								<div className="flex flex-wrap gap-2 mt-3 mb-4">
+									{allStylesUI &&
+										allStylesUI.map((s) => (
+											<button
+												key={s.id}
+												type="button"
+												onClick={() => handleStyleToggle(s)}
+												className={`
+                                                 px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-all rounded-none cursor-pointer
+                                                ${
+																									selectedStyles.some(
+																										(style) =>
+																											style.name === s.name,
+																									)
+																										? "bg-black text-white border-black"
+																										: "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"
+																								}
+                                            `}
+											>
+												{s.name}
+											</button>
+										))}
+								</div>
+
+								<div className="flex gap-0 border-b border-gray-300 focus-within:border-black transition-colors">
+									<input
+										type="text"
+										value={newStyleInput}
+										onChange={(e) => setNewStyleInput(e.target.value)}
+										placeholder="ADD CUSTOM TAG..."
+										className="flex-1 py-2 text-xs font-mono bg-transparent focus:outline-none placeholder-gray-300 uppercase"
+									/>
+									<button
+										type="button"
+										onClick={handleAddNewStyle}
+										className="text-[14px] font-bold uppercase tracking-wider text-black hover:text-gray-600 px-2 flex items-center gap-1 cursor-pointer"
+									>
+										<Plus size={12} /> Add
+									</button>
+								</div>
+								{addStyleError && (
+									<p className="text-red-500 text-[10px] mt-2 font-mono uppercase">
+										{addStyleError}
+									</p>
+								)}
+							</div>
+						</div>
 					</div>
 
-					{/* Submit */}
-					<button
-						type="submit"
-						className="bg-black   text-white py-2 rounded cursor-pointer mt-4"
-					>
-						Save
-					</button>
-				</form>
-			</div>
+					{/* Submit Button Area */}
+					<div className="p-0 border-t border-black">
+						<button
+							type="submit"
+							className="w-full bg-black text-white h-16 text-xs font-bold uppercase tracking-[0.2em] hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+						>
+							Save Item to Closet
+						</button>
+					</div>
+				</div>
+			</form>
 		</div>
 	);
 }

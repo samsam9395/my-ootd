@@ -53,7 +53,7 @@ function ClothViewRecommendations({
 				<div className="flex w-full flex-col items-center justify-center py-20">
 					<Loader />
 					<div className="text-gray-400 font-mono text-xs uppercase tracking-widest mt-6 animate-pulse">
-						Analyzing Fashion Trends...
+						Curating your look...
 					</div>
 				</div>
 			)}
