@@ -69,7 +69,8 @@ function ClosetContent() {
 	}, []);
 
 	return (
-		<div className="flex min-h-screen bg-white text-black font-sans">
+		// ✅ FIX: Removed 'pt-16'. This removes the 64px gap at the top.
+		<div className="flex min-h-screen bg-white text-black font-sans lg:pt-0">
 			<AddClothForm
 				isOpen={isFormOpen}
 				dbTagStyles={dbTagStyles}
@@ -78,37 +79,19 @@ function ClosetContent() {
 			/>
 
 			{/* ----------------------------------------------------------------
-               MOBILE HEADER
-               (Added: cursor-pointer to button)
-            ---------------------------------------------------------------- */}
-			<div className="lg:hidden fixed top-[64px] left-0 w-full bg-[#050505] p-3 z-40 flex justify-between items-center border-b border-white/10">
-				<button
-					onClick={() => setSidebarOpen(!sidebarOpen)}
-					className="text-white p-1 hover:bg-white/10 transition-colors cursor-pointer"
-				>
-					<Menu size={20} />
-				</button>
-				<span className="text-white text-xs font-mono font-bold uppercase tracking-widest">
-					{selectedCategory}
-				</span>
-			</div>
-
-			{/* ----------------------------------------------------------------
                SIDEBAR
             ---------------------------------------------------------------- */}
 			<aside
 				className={`
-                    fixed left-0 bg-white border-r border-gray-100 transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
-                    
-                    /* Mobile Styles */
-                    top-0 h-full w-64 z-[60] pt-24 pl-8 pr-6 shadow-2xl
+                    fixed top-0 left-0 h-full bg-white border-r border-gray-100 
+                    transition-transform duration-300 ease-in-out z-50
+                    w-64 pt-24 pl-8 pr-6 shadow-2xl
                     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-
-                    /* Desktop Styles */
-                    lg:translate-x-0 lg:static lg:block lg:shadow-none lg:z-30 lg:top-16 lg:h-[calc(100vh-64px)] lg:w-72 lg:pt-12 lg:pl-10
+                    
+                    lg:translate-x-0 lg:static lg:shadow-none lg:z-auto lg:pt-28 lg:pl-10
                 `}
 			>
-				<div className="sticky top-0">
+				<div className="sticky top-28">
 					<h2 className="font-serif text-3xl font-bold mb-10 italic text-black">
 						Categories
 					</h2>
@@ -139,91 +122,106 @@ function ClosetContent() {
 			</aside>
 
 			{/* ----------------------------------------------------------------
-               MAIN CONTENT
+               MAIN CONTENT AREA
             ---------------------------------------------------------------- */}
-			<main className="flex-1 flex flex-col px-6 lg:px-12 pb-20 overflow-y-auto pt-[120px] lg:pt-[40px]">
-				{/* Header Section */}
-				<div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
-					<div>
-						<h1 className="text-4xl lg:text-5xl font-serif font-medium italic mb-2">
-							My Closet
-						</h1>
-						<p className="text-xs font-mono text-gray-400 uppercase tracking-widest">
-							{randomItemsArr.length} items digitized
-						</p>
-					</div>
-
-					{/* Add Item Button (Added: cursor-pointer) */}
+			<main className="flex-1 flex flex-col min-h-screen relative">
+				{/* MOBILE HEADER (Sticky) */}
+				<div className="lg:hidden sticky top-0 bg-[#050505] text-white p-3 z-40 flex justify-between items-center border-b border-white/10 shadow-md">
 					<button
-						className="group flex items-center gap-3 bg-[#050505] text-white px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] transition-all hover:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] cursor-pointer"
-						onClick={() => setIsFormOpen(true)}
+						onClick={() => setSidebarOpen(!sidebarOpen)}
+						className="text-white p-1 hover:bg-white/10 transition-colors cursor-pointer"
 					>
-						<Plus size={14} />
-						Add New Item
+						<Menu size={20} />
 					</button>
+					<span className="text-white text-xs font-mono font-bold uppercase tracking-widest">
+						{selectedCategory}
+					</span>
 				</div>
 
-				{/* Random Picks Section */}
-				<div className="w-full mb-10">
-					<div className="flex items-center gap-4 mb-6">
-						<div className="h-[1px] w-8 bg-gray-300"></div>
-						<p className="font-serif text-lg italic text-gray-800">
-							Today's lucky picks
-						</p>
+				{/* SCROLLABLE CONTENT WRAPPER */}
+				<div className="flex-1 px-6 lg:px-12 py-8 lg:pt-28">
+					{/* Header Section */}
+					<div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+						<div>
+							<h1 className="text-4xl lg:text-5xl font-serif font-medium italic mb-2">
+								My Closet
+							</h1>
+							<p className="text-xs font-mono text-gray-400 uppercase tracking-widest">
+								{randomItemsArr.length} items digitized
+							</p>
+						</div>
+
+						{/* Add Item Button */}
+						<button
+							className="group flex items-center gap-3 bg-[#050505] text-white px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] transition-all hover:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] cursor-pointer"
+							onClick={() => setIsFormOpen(true)}
+						>
+							<Plus size={14} />
+							Add New Item
+						</button>
 					</div>
 
-					{randomIsLoading ? (
-						<div className="w-full h-40 flex items-center justify-center bg-gray-50 border border-gray-100">
-							<Loader />
-						</div>
-					) : randomItemsArr.length === 0 ? (
-						<div className="w-full py-16 flex flex-col items-center justify-center border border-dashed border-gray-300 bg-gray-50">
-							<p className="font-serif text-xl mb-2 text-gray-900">
-								Your closet is silent.
+					{/* Random Picks Section */}
+					<div className="w-full mb-10">
+						<div className="flex items-center gap-4 mb-6">
+							<div className="h-[1px] w-8 bg-gray-300"></div>
+							<p className="font-serif text-lg italic text-gray-800">
+								Today's lucky picks
 							</p>
-							<p className="font-mono text-xs text-gray-500 uppercase tracking-wide mb-6">
-								Start building your collection
-							</p>
-							{/* Empty State Link (Added: cursor-pointer) */}
-							<button
-								onClick={() => setIsFormOpen(true)}
-								className="text-xs font-bold underline decoration-1 underline-offset-4 hover:text-gray-600 cursor-pointer"
-							>
-								Upload First Item
-							</button>
 						</div>
-					) : (
-						<RandomCloset
-							randomItemsArr={randomItemsArr}
+
+						{randomIsLoading ? (
+							<div className="w-full h-40 flex items-center justify-center bg-gray-50 border border-gray-100">
+								<Loader />
+							</div>
+						) : randomItemsArr.length === 0 ? (
+							<div className="w-full py-16 flex flex-col items-center justify-center border border-dashed border-gray-300 bg-gray-50">
+								<p className="font-serif text-xl mb-2 text-gray-900">
+									Your closet is silent.
+								</p>
+								<p className="font-mono text-xs text-gray-500 uppercase tracking-wide mb-6">
+									Start building your collection
+								</p>
+								<button
+									onClick={() => setIsFormOpen(true)}
+									className="text-xs font-bold underline decoration-1 underline-offset-4 hover:text-gray-600 cursor-pointer"
+								>
+									Upload First Item
+								</button>
+							</div>
+						) : (
+							<RandomCloset
+								randomItemsArr={randomItemsArr}
+								handleSideBarClose={() => setSidebarOpen(false)}
+							/>
+						)}
+					</div>
+
+					{/* Gallery Section */}
+					<div className="w-full">
+						<div className="flex items-center gap-4 mb-8">
+							<div className="h-[1px] w-full bg-gray-200"></div>
+							<span className="text-xs font-mono font-bold uppercase tracking-widest text-gray-400 whitespace-nowrap">
+								Collection / {selectedCategory}
+							</span>
+							<div className="h-[1px] w-full bg-gray-200"></div>
+						</div>
+
+						<Gallery
+							selectedCategory={selectedCategory}
+							dbTagStyles={dbTagStyles}
+							newCloth={newCloth}
+							onNewClothHandled={() => setNewCloth(null)}
 							handleSideBarClose={() => setSidebarOpen(false)}
 						/>
-					)}
-				</div>
-
-				{/* Gallery Section */}
-				<div className="w-full">
-					<div className="flex items-center gap-4 mb-8">
-						<div className="h-[1px] w-full bg-gray-200"></div>
-						<span className="text-xs font-mono font-bold uppercase tracking-widest text-gray-400 whitespace-nowrap">
-							Collection / {selectedCategory}
-						</span>
-						<div className="h-[1px] w-full bg-gray-200"></div>
 					</div>
-
-					<Gallery
-						selectedCategory={selectedCategory}
-						dbTagStyles={dbTagStyles}
-						newCloth={newCloth}
-						onNewClothHandled={() => setNewCloth(null)}
-						handleSideBarClose={() => setSidebarOpen(false)}
-					/>
 				</div>
 			</main>
 
-			{/* Mobile Overlay (Added: cursor-pointer for closing) */}
+			{/* Mobile Overlay */}
 			{sidebarOpen && (
 				<div
-					className="fixed inset-0 bg-black/60 backdrop-blur-sm lg:hidden z-50 transition-opacity cursor-pointer"
+					className="fixed inset-0 bg-black/60 backdrop-blur-sm lg:hidden z-40 transition-opacity cursor-pointer"
 					onClick={() => setSidebarOpen(false)}
 				></div>
 			)}

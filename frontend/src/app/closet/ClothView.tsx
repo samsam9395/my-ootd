@@ -65,7 +65,6 @@ export default function ClothView({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					// 背景：使用純白透明遮罩，保持清爽感
 					className="fixed inset-0 bg-white/80 backdrop-blur-sm flex justify-center items-center z-[200] p-4"
 					onClick={onClose}
 				>
@@ -75,39 +74,37 @@ export default function ClothView({
 						exit={{ y: 20, opacity: 0, scale: 0.98 }}
 						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 						onClick={(e) => e.stopPropagation()}
-						// ----------------------------------------------------------------
-						// FIX: Container Styles
-						// 1. h-[85vh]: 強制高度，解決塌陷問題
-						// 2. border border-black: 細黑框，呼應 Sidebar
-						// 3. shadow-2xl: 柔和一點的陰影，增加層次
-						// ----------------------------------------------------------------
+						/* Container Layout Logic:
+                            Mobile: overflow-y-auto allows the entire card to scroll.
+                            Desktop: overflow-hidden locks the card size, inner content scrolls independently.
+                        */
 						className={`
                             bg-white w-full max-w-5xl h-[85vh] relative flex flex-col md:flex-row 
-                            overflow-hidden 
+                            overflow-y-auto md:overflow-hidden
                             border border-black shadow-2xl
                         `}
 					>
-						{/* --------------------------------------------------------
-                           LEFT SIDE: Image Area (Gallery Style)
-                        --------------------------------------------------------- */}
-						<div className="w-full md:w-[50%] h-[40vh] md:h-full flex justify-center items-center bg-gray-50 relative border-b md:border-b-0 md:border-r border-black p-8">
-							{/* Manage Button (Top Left - Clean Style) */}
+						{/* LEFT SIDE: Image Area 
+                           Mobile: Fixed height (50vh) to ensure image visibility.
+                           Desktop: Full height.
+                        */}
+						<div className="w-full md:w-[50%] h-[50vh] min-h-[400px] md:h-full md:min-h-0 flex justify-center items-center bg-gray-50 relative border-b md:border-b-0 md:border-r border-black p-8 shrink-0">
+							{/* Manage Button */}
 							<button
 								onClick={handleManageClick}
 								className={`
-        absolute top-6 left-6 z-20 flex items-center gap-2 
-        text-xs font-mono font-bold uppercase tracking-widest 
-        transition-all duration-300 cursor-pointer
-        px-3 py-1 border
-        ${
-					isEditMode
-						? "bg-white text-black border-black"
-						: "bg-transparent text-gray-400 border-transparent hover:text-black"
-				}
-    `}
+                                    absolute top-6 left-6 z-20 flex items-center gap-2 
+                                    text-xs font-mono font-bold uppercase tracking-widest 
+                                    transition-all duration-300 cursor-pointer
+                                    px-3 py-1 border
+                                    ${
+																			isEditMode
+																				? "bg-white text-black border-black"
+																				: "bg-transparent text-gray-400 border-transparent hover:text-black"
+																		}
+                                `}
 							>
 								<Settings2 size={16} />
-
 								<span className="min-w-[4.5rem] text-left">
 									{isEditMode ? "Editing" : "Edit Item"}
 								</span>
@@ -125,17 +122,18 @@ export default function ClothView({
 								/>
 							</div>
 
-							{/* Tech Specs (Bottom Left) */}
+							{/* Tech Specs */}
 							<div className="absolute bottom-6 left-6 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
 								REF. {item.id.toString().padStart(6, "0")}
 							</div>
 						</div>
 
-						{/* --------------------------------------------------------
-                           RIGHT SIDE: Content Area
-                        --------------------------------------------------------- */}
-						<div className="flex-1 w-full h-full flex flex-col bg-white relative">
-							{/* Close button (Top Right - Clean Style) */}
+						{/* RIGHT SIDE: Content Area
+                           Mobile: Auto height to fit content, overflow visible (scrolls with parent).
+                           Desktop: Full height, independent scroll.
+                        */}
+						<div className="w-full md:w-[50%] h-auto md:h-full flex flex-col bg-white relative">
+							{/* Close button */}
 							<button
 								onClick={onClose}
 								className="absolute top-6 right-6 z-20 text-gray-400 hover:text-black transition-colors cursor-pointer"
@@ -144,8 +142,8 @@ export default function ClothView({
 								<X size={24} strokeWidth={1.5} />
 							</button>
 
-							{/* Scrollable Content */}
-							<div className="flex-1 overflow-y-auto p-8 md:p-12 pt-16">
+							{/* Content Wrapper */}
+							<div className="flex-1 p-8 md:p-12 pt-16 overflow-visible md:overflow-y-auto">
 								{isEditMode ? (
 									<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
 										<div className="mb-8 border-b border-gray-100 pb-4">

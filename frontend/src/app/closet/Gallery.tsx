@@ -52,7 +52,7 @@ export default function Gallery({
 	const [hasMore, setHasMore] = useState(true);
 
 	const [selectedClothIndex, setSelectedClothIndex] = useState<number | null>(
-		null
+		null,
 	);
 
 	useEffect(() => {
@@ -60,16 +60,16 @@ export default function Gallery({
 
 		const fetchInitialData = async () => {
 			setIsLoading(true);
-			setFetchItems([]); // reset UI
+			setFetchItems([]);
 			setPage(0);
 			setHasMore(true);
 
-			const offset = 0; //always start fresh
+			const offset = 0;
 
 			const data = await getPageClothesByType(
 				selectedCategory,
 				ITEM_LIMIT,
-				offset
+				offset,
 			);
 
 			if (!cancelled) {
@@ -87,16 +87,16 @@ export default function Gallery({
 	}, [selectedCategory]);
 
 	useEffect(() => {
-		if (page === 0 || !hasMore) return; // skip initial page fetch; handled above
+		if (page === 0 || !hasMore) return;
 
 		const callFetchMoreData = async () => {
 			setIsLoading(true);
 
-			const offset = page * ITEM_LIMIT; // calculate offset
+			const offset = page * ITEM_LIMIT;
 			const data = await getPageClothesByType(
 				selectedCategory,
 				ITEM_LIMIT,
-				offset
+				offset,
 			);
 
 			if (!data || data.length === 0) {
@@ -105,7 +105,7 @@ export default function Gallery({
 				setFetchItems((prev) => {
 					const existingIds = new Set(prev.map((item) => item.id));
 					const filteredData = data.filter(
-						(item: ClothItem) => !existingIds.has(item.id)
+						(item: ClothItem) => !existingIds.has(item.id),
 					);
 					return [...prev, ...filteredData];
 				});
@@ -127,11 +127,11 @@ export default function Gallery({
 						timeout = setTimeout(() => {
 							setPage((prev) => prev + 1);
 							timeout = null;
-						}, 200); //debounce prevent multiple calls
+						}, 200);
 					}
 				}
 			},
-			{ threshold: 0.5 } //lower means trigger observer earlier
+			{ threshold: 0.5 },
 		);
 
 		if (loaderRef.current) observer.observe(loaderRef.current);
@@ -142,25 +142,18 @@ export default function Gallery({
 	}, [isLoading, hasMore]);
 
 	const handleSaveItemUpdate = async (updatePayload: AddUpdateClothPayload) => {
-		// Refresh the item in the gallery after save
 		showLoader();
 		try {
 			const savedRes = await addUpdateCloth(updatePayload);
-
 			if (!savedRes.success) throw new Error("No data returned from server");
-
 			const savedItem = savedRes.cloth;
 
 			setFetchItems((prevItems) => {
 				const existingIndex = prevItems.findIndex(
-					(item) => item.id === savedItem.id
+					(item) => item.id === savedItem.id,
 				);
-
-				// If the cloth already exists in local list (update)
 				if (existingIndex !== -1) {
 					const oldItem = prevItems[existingIndex];
-
-					// Case 1: category changed → remove from current list
 					if (
 						oldItem.category !== savedItem.category &&
 						selectedCategory !== "all"
@@ -168,14 +161,10 @@ export default function Gallery({
 						const filtered = prevItems.filter((i) => i.id !== savedItem.id);
 						return filtered;
 					}
-
-					// Case 2: same category → update in place
 					const updated = [...prevItems];
 					updated[existingIndex] = savedItem;
 					return updated;
 				}
-
-				// Otherwise ignore (belongs to another category)
 				return prevItems;
 			});
 
@@ -187,29 +176,23 @@ export default function Gallery({
 			hideLoader();
 		}
 	};
-	const handleDeleteItem = async () => {
-		// Remove the item from the gallery after delete
-		if (selectedClothIndex === null || !fetchItems[selectedClothIndex]) return;
 
+	const handleDeleteItem = async () => {
+		if (selectedClothIndex === null || !fetchItems[selectedClothIndex]) return;
 		const itemToDelete = fetchItems[selectedClothIndex];
 		const confirmDelete = window.confirm(
-			`Are you sure you want to delete this item? This action cannot be undone.`
+			`Are you sure you want to delete this item? This action cannot be undone.`,
 		);
 
 		if (!confirmDelete) return;
 		showLoader();
 		try {
 			const res = await deleteCloth(itemToDelete.id);
-
 			if (res) {
-				// Remove item from local state
 				setFetchItems((prev) =>
-					prev.filter((item) => item.id !== itemToDelete.id)
+					prev.filter((item) => item.id !== itemToDelete.id),
 				);
-
-				// Close the viewer
 				setSelectedClothIndex(null);
-
 				showAlert("Cloth deleted successfully!", "success");
 			} else {
 				showAlert(`Failed to delete cloth: ${itemToDelete.name}`, "error");
@@ -224,16 +207,21 @@ export default function Gallery({
 
 	useEffect(() => {
 		if (newCloth) {
-			// only add if same category
 			if (newCloth.category === selectedCategory) {
 				setFetchItems((prev) => [...prev, newCloth]);
 			}
 			onNewClothHandled?.();
 		}
 	}, [newCloth]);
+
 	return (
 		<>
-			<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+			{/* RWD LAYOUT FIX:
+                1. grid-cols-2: 手機版改成雙欄 (一行兩張)，圖片直接縮小一半。
+                2. gap-x-4 gap-y-10: 增加間距，讓畫面更透氣。
+                3. md:grid-cols-3: 平板/電腦版維持三欄。
+            */}
+			<div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:gap-x-8">
 				{fetchItems.map((item, index) => (
 					<div
 						key={index}
@@ -241,23 +229,40 @@ export default function Gallery({
 							handleSideBarClose();
 							setSelectedClothIndex(index);
 						}}
-						className="bg-white rounded-lg shadow-md cursor-pointer"
+						className="group bg-white cursor-pointer flex flex-col gap-3"
 					>
-						<div className="relative w-full h-64 sm:h-72 md:h-80 lg:h-96 rounded-t-lg">
+						{/* IMAGE CONTAINER FIX:
+                            1. aspect-[3/4]: 強制鎖定 3:4 比例 (時尚攝影標準比例)，不再使用固定高度 h-80。
+                               這會根據寬度自動計算高度，完美解決 Zoomed in 問題。
+                            2. w-full: 寬度填滿欄位。
+                        */}
+						<div className="relative w-full aspect-[3/4] bg-gray-50 transition-colors duration-300">
 							<Image
 								fill
 								src={item.image_url}
 								alt={item.name}
-								className="object-cover rounded-t-lg"
-								sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+								/* MOBILE STYLE:
+                                   - object-cover: 填滿容器。
+                                   - 手機版無 padding，電腦版 (sm:) 加 padding 和 multiply 效果。
+                                */
+								className="object-cover sm:p-4 sm:mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+								sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
 							/>
 						</div>
-						<div className="p-2">
-							<p className="text-sm font-medium">{item.name}</p>
+
+						{/* TEXT AREA */}
+						<div className="flex flex-col gap-0.5">
+							<p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+								{item.category}
+							</p>
+							<h3 className="text-sm md:text-base font-serif italic text-black leading-tight group-hover:underline decoration-1 underline-offset-4 line-clamp-2">
+								{item.name}
+							</h3>
 						</div>
 					</div>
 				))}
 			</div>
+
 			{selectedClothIndex !== null && fetchItems[selectedClothIndex] && (
 				<ClothViewer
 					dbTagStyles={dbTagStyles ?? []}
@@ -268,8 +273,14 @@ export default function Gallery({
 					onDelete={() => handleDeleteItem()}
 				/>
 			)}
-			{isLoading && <Loader />}
-			<div ref={loaderRef} />
+
+			{isLoading && (
+				<div className="py-10">
+					<Loader />
+				</div>
+			)}
+
+			<div ref={loaderRef} className="h-4" />
 		</>
 	);
 }
