@@ -8,7 +8,7 @@ import AddClothForm from "./AddClothForm";
 import { ClothItem, StyleTag } from "@/types";
 import { getRandomClothes, getStyleTags } from "@/utils/api/clothes";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu } from "lucide-react";
+import { Menu, Plus } from "lucide-react";
 import Loader from "@/components/common/loader";
 
 const categories = [
@@ -36,7 +36,7 @@ function ClosetContent() {
 	function handleCategoryChange(category: string) {
 		if (category === selectedCategory) return;
 		router.push(`/closet?category=${category}`);
-		setSidebarOpen(false); // close drawer on selection (mobile)
+		setSidebarOpen(false);
 	}
 
 	useEffect(() => {
@@ -69,7 +69,7 @@ function ClosetContent() {
 	}, []);
 
 	return (
-		<div className="flex h-screen">
+		<div className="flex min-h-screen bg-white text-black font-sans">
 			<AddClothForm
 				isOpen={isFormOpen}
 				dbTagStyles={dbTagStyles}
@@ -77,78 +77,139 @@ function ClosetContent() {
 				onAddCloth={(newCloth) => setNewCloth(newCloth)}
 			/>
 
-			{/* Hamburger button for mobile */}
-			<div className="w-full fixed top-[64px]left-0 bg-gray-800 p-1 z-50 flex justify-between items-center sm:hidden">
+			{/* ----------------------------------------------------------------
+               MOBILE HEADER
+               (Added: cursor-pointer to button)
+            ---------------------------------------------------------------- */}
+			<div className="lg:hidden fixed top-[64px] left-0 w-full bg-[#050505] p-3 z-40 flex justify-between items-center border-b border-white/10">
 				<button
 					onClick={() => setSidebarOpen(!sidebarOpen)}
-					className="sm:hidden text-white px-3 py-2 rounded cursor-pointer"
+					className="text-white p-1 hover:bg-white/10 transition-colors cursor-pointer"
 				>
 					<Menu size={20} />
 				</button>
+				<span className="text-white text-xs font-mono font-bold uppercase tracking-widest">
+					{selectedCategory}
+				</span>
 			</div>
 
-			{/* Sidebar */}
+			{/* ----------------------------------------------------------------
+               SIDEBAR
+            ---------------------------------------------------------------- */}
 			<aside
 				className={`
-					z-[101] fixed top-0 left-0 h-full w-48 bg-white p-6 shadow-lg transform
-					${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-					transition-transform duration-300 ease-in-out
-					sm:translate-x-0 sm:static sm:block sm:shadow-none
-				`}
+                    fixed left-0 bg-white border-r border-gray-100 transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
+                    
+                    /* Mobile Styles */
+                    top-0 h-full w-64 z-[60] pt-24 pl-8 pr-6 shadow-2xl
+                    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+
+                    /* Desktop Styles */
+                    lg:translate-x-0 lg:static lg:block lg:shadow-none lg:z-30 lg:top-16 lg:h-[calc(100vh-64px)] lg:w-72 lg:pt-12 lg:pl-10
+                `}
 			>
-				<h2 className="font-bold text-xl mb-4">Categories</h2>
-				<ul className="space-y-2">
-					{categories.map((cat) => (
-						<li key={cat}>
-							<button
-								className={`hover:underline cursor-pointer ${
-									selectedCategory === cat ? "font-bold text-black-800" : ""
-								}`}
-								onClick={() => handleCategoryChange(cat)}
-							>
-								{cat.charAt(0).toUpperCase() + cat.slice(1)}
-							</button>
-						</li>
-					))}
-				</ul>
+				<div className="sticky top-0">
+					<h2 className="font-serif text-3xl font-bold mb-10 italic text-black">
+						Categories
+					</h2>
+					<ul className="space-y-6">
+						{categories.map((cat) => (
+							<li key={cat}>
+								<button
+									className={`
+                                        group flex items-center w-full text-left transition-all duration-300 cursor-pointer
+                                        ${selectedCategory === cat ? "opacity-100 translate-x-2" : "opacity-40 hover:opacity-100 hover:translate-x-2"}
+                                    `}
+									onClick={() => handleCategoryChange(cat)}
+								>
+									<span
+										className={`
+                                        text-xs font-mono font-bold uppercase tracking-[0.2em] relative
+                                        after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[1px] after:bg-black after:transition-all after:duration-300
+                                        ${selectedCategory === cat ? "after:w-full" : "after:w-0 group-hover:after:w-full"}
+                                    `}
+									>
+										{cat}
+									</span>
+								</button>
+							</li>
+						))}
+					</ul>
+				</div>
 			</aside>
 
-			{/* Main content */}
-			<main className="flex-1 flex flex-col pt-[80px] sm:pt-[50px] overflow-y-auto bg-white ml-0 ">
-				<div className="w-full px-6 flex justify-start mb-10">
+			{/* ----------------------------------------------------------------
+               MAIN CONTENT
+            ---------------------------------------------------------------- */}
+			<main className="flex-1 flex flex-col px-6 lg:px-12 pb-20 overflow-y-auto pt-[120px] lg:pt-[40px]">
+				{/* Header Section */}
+				<div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+					<div>
+						<h1 className="text-4xl lg:text-5xl font-serif font-medium italic mb-2">
+							My Closet
+						</h1>
+						<p className="text-xs font-mono text-gray-400 uppercase tracking-widest">
+							{randomItemsArr.length} items digitized
+						</p>
+					</div>
+
+					{/* Add Item Button (Added: cursor-pointer) */}
 					<button
-						className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
+						className="group flex items-center gap-3 bg-[#050505] text-white px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] transition-all hover:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] cursor-pointer"
 						onClick={() => setIsFormOpen(true)}
 					>
-						+ Add New Item To Closet
+						<Plus size={14} />
+						Add New Item
 					</button>
 				</div>
 
-				<div className="w-full px-6 mb-2">
-					<p className="text-gray-500 italic text-sm">
-						{"🎲 Today's lucky picks from your closet"}
-					</p>
+				{/* Random Picks Section */}
+				<div className="w-full mb-10">
+					<div className="flex items-center gap-4 mb-6">
+						<div className="h-[1px] w-8 bg-gray-300"></div>
+						<p className="font-serif text-lg italic text-gray-800">
+							Today's lucky picks
+						</p>
+					</div>
+
+					{randomIsLoading ? (
+						<div className="w-full h-40 flex items-center justify-center bg-gray-50 border border-gray-100">
+							<Loader />
+						</div>
+					) : randomItemsArr.length === 0 ? (
+						<div className="w-full py-16 flex flex-col items-center justify-center border border-dashed border-gray-300 bg-gray-50">
+							<p className="font-serif text-xl mb-2 text-gray-900">
+								Your closet is silent.
+							</p>
+							<p className="font-mono text-xs text-gray-500 uppercase tracking-wide mb-6">
+								Start building your collection
+							</p>
+							{/* Empty State Link (Added: cursor-pointer) */}
+							<button
+								onClick={() => setIsFormOpen(true)}
+								className="text-xs font-bold underline decoration-1 underline-offset-4 hover:text-gray-600 cursor-pointer"
+							>
+								Upload First Item
+							</button>
+						</div>
+					) : (
+						<RandomCloset
+							randomItemsArr={randomItemsArr}
+							handleSideBarClose={() => setSidebarOpen(false)}
+						/>
+					)}
 				</div>
 
-				{randomIsLoading ? (
-					<Loader />
-				) : randomItemsArr.length === 0 ? (
-					<div className="flex w-full flex-col items-center mt-6">
-						<div className="text-gray-700 text-lg mb-2">
-							<div>
-								Hold up! Your closet is currently sunbathing. <br />
-								Click that 'Add' button to bring the fashion party!
-							</div>
-						</div>
+				{/* Gallery Section */}
+				<div className="w-full">
+					<div className="flex items-center gap-4 mb-8">
+						<div className="h-[1px] w-full bg-gray-200"></div>
+						<span className="text-xs font-mono font-bold uppercase tracking-widest text-gray-400 whitespace-nowrap">
+							Collection / {selectedCategory}
+						</span>
+						<div className="h-[1px] w-full bg-gray-200"></div>
 					</div>
-				) : (
-					<RandomCloset
-						randomItemsArr={randomItemsArr}
-						handleSideBarClose={() => setSidebarOpen(false)}
-					/>
-				)}
 
-				<div className="w-full px-6">
 					<Gallery
 						selectedCategory={selectedCategory}
 						dbTagStyles={dbTagStyles}
@@ -159,10 +220,10 @@ function ClosetContent() {
 				</div>
 			</main>
 
-			{/* Overlay when sidebar open on mobile */}
+			{/* Mobile Overlay (Added: cursor-pointer for closing) */}
 			{sidebarOpen && (
 				<div
-					className="fixed inset-0 bg-black opacity-30 sm:hidden z-[100]"
+					className="fixed inset-0 bg-black/60 backdrop-blur-sm lg:hidden z-50 transition-opacity cursor-pointer"
 					onClick={() => setSidebarOpen(false)}
 				></div>
 			)}
@@ -174,8 +235,8 @@ export default function ClosetPage() {
 	return (
 		<Suspense
 			fallback={
-				<div className="flex items-center justify-center h-screen">
-					Loading...
+				<div className="flex items-center justify-center h-screen bg-white">
+					<Loader />
 				</div>
 			}
 		>
