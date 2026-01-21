@@ -21,11 +21,11 @@ For a quick tour, the login fields are **pre-filled with a shared demo account**
 
 ## 📷 Screenshots
 
-|                               **Digital Closet View**                                |                                   **Item Tagging & Editing**                                   |
+|                               **Digital Closet View**                                |                                  **Random Daily Inspiration**                                  |
 | :----------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------: |
-| ![Screenshot of Edit mode for each item](./assets/readme/screenshot_closet_page.png) |      ![Screenshot of Edit mode for each item](./assets/readme/screenshot_edit_cloth.png)       |
-|                               **AI Outfit Suggestion**                               |                                  **Random Daily Inspiration**                                  |
-|     ![Screenshot of Outfit Suggestions](./assets/readme/screenshot_view_rec.png)     | ![Screenshot of Random Outfit and it's suggestions](./assets/readme/screenshot_random_rec.png) |
+| ![Screenshot of Edit mode for each item](./assets/readme/screenshot_closet_page.png) | ![Screenshot of Random Outfit and it's suggestions](./assets/readme/screenshot_random_rec.png) |
+|                               **AI Outfit Suggestion**                               |                                   **Item Tagging & Editing**                                   |
+|     ![Screenshot of Outfit Suggestions](./assets/readme/screenshot_view_rec.png)     |      ![Screenshot of Edit mode for each item](./assets/readme/screenshot_edit_cloth.png)       |
 
 <br>
 
