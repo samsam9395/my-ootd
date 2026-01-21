@@ -4,6 +4,7 @@ import { AddUpdateClothPayload, StyleTag } from "@/types";
 import { useAlert } from "@/contexts/AlertContext";
 import { useLoader } from "@/contexts/FullLoaderContext";
 import ConfirmationModal from "@/components/common/ConfirmModal";
+import { Trash2, Plus } from "lucide-react";
 
 type ClothViewEditFormProps = {
 	item: any;
@@ -12,6 +13,7 @@ type ClothViewEditFormProps = {
 	onDelete: (id: number) => void;
 	dbTagStyles: StyleTag[];
 };
+
 export default function ClothViewEditForm({
 	item,
 	onClose,
@@ -23,7 +25,7 @@ export default function ClothViewEditForm({
 	const [colour, setColour] = useState(item?.colour || "");
 	const [type, setType] = useState(item?.type || clothingTypes[0].type);
 
-	const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>([]); // {id, name}, contains all picked styles (new + existing)
+	const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>([]);
 	const [newStyles, setNewStyles] = useState<StyleTag[]>([]);
 	const [newStyleInput, setNewStyleInput] = useState("");
 	const [allStylesUI, setAllStylesUI] = useState<StyleTag[]>([]);
@@ -33,23 +35,17 @@ export default function ClothViewEditForm({
 	const { showAlert } = useAlert();
 	const { showLoader, hideLoader } = useLoader();
 
-	// Add a new style (typed by user)
 	const handleAddNewStyle = () => {
 		if (!newStyleInput) return;
-
-		// Avoid duplicates in selectedStyles
 		if (!selectedStyles.some((s) => s.name === newStyleInput)) {
-			const fakeStyle: StyleTag = { id: "", name: newStyleInput }; // no id, DB will assign real id
+			const fakeStyle: StyleTag = { id: "", name: newStyleInput };
 			setSelectedStyles([...selectedStyles, fakeStyle]);
 			setNewStyles([...newStyles, fakeStyle]);
-
-			// Add to UI list immediately
 			setAllStylesUI([...allStylesUI, fakeStyle]);
 			setNewStyleInput("");
 		}
 	};
 
-	// Toggle a style (existing or new)
 	const handleStyleToggle = (style: StyleTag) => {
 		if (selectedStyles.some((s) => s.name === style.name)) {
 			setSelectedStyles(selectedStyles.filter((s) => s.name !== style.name));
@@ -60,7 +56,6 @@ export default function ClothViewEditForm({
 
 	const handleSave = async () => {
 		showLoader();
-
 		const updatePayload: AddUpdateClothPayload = {
 			id: item.id,
 			name,
@@ -68,17 +63,8 @@ export default function ClothViewEditForm({
 			type,
 			styles: selectedStyles,
 		};
-
 		try {
-			await onSave(updatePayload); // your existing save function
-			setColour("");
-			setName("");
-			setType(clothingTypes[0].type);
-			setSelectedStyles([]);
-			setNewStyles([]);
-			setNewStyleInput("");
-
-			// Show success alert
+			await onSave(updatePayload);
 			showAlert("Cloth updated successfully!", "success");
 			onClose();
 		} catch (err) {
@@ -98,31 +84,28 @@ export default function ClothViewEditForm({
 	};
 
 	const handleConfirmDelete = () => {
-		if (itemToDeleteId) {
-			onDelete(itemToDeleteId); // Perform the actual deletion
-		}
-		setIsDeleteModalOpen(false); // Close the modal
-		setItemToDeleteId(null); // Clear the stored ID
+		if (itemToDeleteId) onDelete(itemToDeleteId);
+		setIsDeleteModalOpen(false);
+		setItemToDeleteId(null);
 	};
 
 	useEffect(() => {
-		if (dbTagStyles?.length) {
-			setAllStylesUI(dbTagStyles);
-		}
+		if (dbTagStyles?.length) setAllStylesUI(dbTagStyles);
 	}, [dbTagStyles]);
 
 	useEffect(() => {
 		if (!item) return;
-
 		const prevSelectedStyles =
 			item.styles
-				?.map(
-					(s: string) => dbTagStyles.find((dbs) => dbs.name === s) // s is string
-				)
-				.filter(Boolean) || []; // remove undefined if no match
-
+				?.map((s: string) => dbTagStyles.find((dbs) => dbs.name === s))
+				.filter(Boolean) || [];
 		setSelectedStyles(prevSelectedStyles);
 	}, [item, dbTagStyles]);
+
+	const inputClass =
+		"w-full border-b border-gray-300 focus:border-black py-2 text-sm font-medium focus:outline-none transition-colors bg-transparent placeholder-gray-300 rounded-none";
+	const labelClass =
+		"text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400 mb-1 block";
 
 	return (
 		<form
@@ -130,110 +113,118 @@ export default function ClothViewEditForm({
 				e.preventDefault();
 				handleSave();
 			}}
-			className="flex flex-col gap-4"
+			className="flex flex-col gap-8 h-full"
 		>
-			{/* Name */}
-			<label className="flex flex-col gap-1">
-				<span className="text-sm font-medium">Name</span>
-				<input
-					type="text"
-					defaultValue={item.name}
-					className="border rounded px-2 py-1"
-				/>
-			</label>
-
-			{/* Type (select) */}
-			<div className="flex flex-col">
-				<label className="mb-1 font-medium">Type</label>
-				<select
-					value={type}
-					onChange={(e) => setType(e.target.value)}
-					className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-black"
-				>
-					{clothingTypes.map((ct) => (
-						<option key={ct.type} value={ct.type}>
-							{ct.type}
-						</option>
-					))}
-				</select>
-			</div>
-
-			{/* Colour (text input) */}
-			<div className="flex flex-col">
-				<label className="mb-1 font-medium">Colour</label>
-				<input
-					type="text"
-					value={colour}
-					onChange={(e) => setColour(e.target.value)}
-					placeholder="Enter colour (e.g., beige, navy blue)"
-					className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-black"
-					required
-				/>
-			</div>
-
-			{/* Styles */}
-			<div className="flex flex-col">
-				<label className="mb-1 font-medium">Styles</label>
-				{allStylesUI && (
-					<div className="flex flex-wrap gap-2 mb-4 ">
-						{allStylesUI.map((s) => (
-							<button
-								key={s.id}
-								type="button"
-								onClick={() => handleStyleToggle(s)}
-								className={`px-3 py-1 rounded-full border cursor-pointer ${
-									selectedStyles.some((style) => style.name === s.name)
-										? "bg-gray-400 text-white "
-										: "border-gray-300 text-gray-700 hover:border-black"
-								}`}
-							>
-								{s.name}
-							</button>
-						))}
-					</div>
-				)}
-				<div className="flex gap-2 ">
+			<div className="space-y-6">
+				{/* Name */}
+				<div>
+					<span className={labelClass}>Item Name</span>
 					<input
 						type="text"
-						value={newStyleInput}
-						onChange={(e) => setNewStyleInput(e.target.value)}
-						placeholder="Add new style"
-						className={`flex-1 border border-gray-600  rounded p-2 focus:outline-none focus:ring-1 focus:border-black `}
+						value={name}
+						onChange={(e) => setName(e.target.value)}
+						className={`${inputClass} text-xl`}
 					/>
-					<button
-						type="button"
-						onClick={handleAddNewStyle}
-						className="  bg-gray-500 text-white px-4 py-2 rounded hover:bg-black cursor-pointer"
-					>
-						Add
-					</button>
+				</div>
+
+				<div className="grid grid-cols-2 gap-8">
+					{/* Type */}
+					<div>
+						<label className={labelClass}>Category</label>
+						<select
+							value={type}
+							onChange={(e) => setType(e.target.value)}
+							className={inputClass}
+						>
+							{clothingTypes.map((ct) => (
+								<option key={ct.type} value={ct.type}>
+									{ct.type}
+								</option>
+							))}
+						</select>
+					</div>
+
+					{/* Colour */}
+					<div>
+						<label className={labelClass}>Colour</label>
+						<input
+							type="text"
+							value={colour}
+							onChange={(e) => setColour(e.target.value)}
+							className={inputClass}
+						/>
+					</div>
+				</div>
+
+				{/* Styles */}
+				<div>
+					<label className={labelClass}>Style Tags</label>
+					<div className="flex flex-wrap gap-2 mt-3 mb-4">
+						{allStylesUI &&
+							allStylesUI.map((s) => (
+								<button
+									key={s.id}
+									type="button"
+									onClick={() => handleStyleToggle(s)}
+									// ✅ FIX: Added cursor-pointer, increased text size and padding
+									className={`
+                                    px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-all rounded-none cursor-pointer
+                                    ${
+																			selectedStyles.some(
+																				(style) => style.name === s.name,
+																			)
+																				? "bg-black text-white border-black"
+																				: "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"
+																		}
+                                `}
+								>
+									{s.name}
+								</button>
+							))}
+					</div>
+					<div className="flex gap-0 border-b border-gray-300 focus-within:border-black transition-colors">
+						<input
+							type="text"
+							value={newStyleInput}
+							onChange={(e) => setNewStyleInput(e.target.value)}
+							placeholder="ADD CUSTOM TAG..."
+							className="flex-1 py-2 text-xs font-mono bg-transparent focus:outline-none placeholder-gray-300 uppercase"
+						/>
+						<button
+							type="button"
+							onClick={handleAddNewStyle}
+							className="text-[14px] font-bold uppercase tracking-wider text-black hover:text-gray-600 px-2 cursor-pointer flex items-center gap-1"
+						>
+							<Plus size={12} /> Add
+						</button>
+					</div>
 				</div>
 			</div>
 
-			{/* Save */}
-			<button
-				type="submit"
-				className=" py-2 px-4 cursor-pointer rounded-lg bg-gray-800 text-white hover:bg-black transition shadow-md mb-15"
-			>
-				Save Changes
-			</button>
+			<div className="mt-auto pt-8 flex items-center justify-between border-t border-gray-100">
+				<button
+					type="button"
+					onClick={() => handleDeleteClick(item.id)}
+					className="flex items-center gap-2 text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-wider px-2 py-2 transition-colors cursor-pointer"
+				>
+					<Trash2 size={14} />
+					Delete
+				</button>
 
-			{/* The Confirmation Modal */}
+				<button
+					type="submit"
+					className="bg-black text-white text-xs font-bold uppercase tracking-[0.2em] px-8 py-4 hover:bg-gray-800 transition-all shadow-lg hover:shadow-none cursor-pointer rounded-none"
+				>
+					Save Changes
+				</button>
+			</div>
+
 			<ConfirmationModal
 				isOpen={isDeleteModalOpen}
 				onClose={() => setIsDeleteModalOpen(false)}
 				onConfirm={handleConfirmDelete}
 				itemTitle={item.name || "this item"}
 			/>
-
-			{/* Delete */}
-			<button
-				type="button"
-				onClick={() => handleDeleteClick(item.id)}
-				className=" py-2 px-4 mt-4  text-white bg-red-600 rounded-lg hover:bg-red-700 transition shadow-md cursor-pointer"
-			>
-				Delete Item
-			</button>
 		</form>
 	);
 }

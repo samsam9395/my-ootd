@@ -8,7 +8,7 @@ import {
 } from "@/types";
 import { fetchRecommendations } from "@/utils/api/clothes";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Ellipsis } from "lucide-react";
+import { X, Settings2 } from "lucide-react";
 import { useState } from "react";
 import ClothViewRecommendations from "./ClothViewRecommendations";
 import ClothViewEditForm from "./ClothViewEditForm";
@@ -56,6 +56,7 @@ export default function ClothView({
 	const handleManageClick = () => {
 		setIsEditMode((prev) => !prev);
 	};
+
 	return (
 		<AnimatePresence>
 			{isOpen && (
@@ -64,72 +65,132 @@ export default function ClothView({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					className="fixed inset-0 bg-black/50 flex justify-center items-start md:items-center z-200 p-4 overflow-y-auto"
+					// 背景：使用純白透明遮罩，保持清爽感
+					className="fixed inset-0 bg-white/80 backdrop-blur-sm flex justify-center items-center z-[200] p-4"
+					onClick={onClose}
 				>
 					<motion.div
-						initial={{ y: 50, opacity: 0 }}
-						animate={{ y: 0, opacity: 1 }}
-						exit={{ y: 50, opacity: 0 }}
-						className="bg-white rounded-lg w-full max-w-3xl p-6 pt-15 relative flex flex-col md:flex-row gap-4
-    max-h-[90vh] overflow-hidden
-    mt-16 md:mt-0"
+						initial={{ y: 20, opacity: 0, scale: 0.98 }}
+						animate={{ y: 0, opacity: 1, scale: 1 }}
+						exit={{ y: 20, opacity: 0, scale: 0.98 }}
+						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+						onClick={(e) => e.stopPropagation()}
+						// ----------------------------------------------------------------
+						// FIX: Container Styles
+						// 1. h-[85vh]: 強制高度，解決塌陷問題
+						// 2. border border-black: 細黑框，呼應 Sidebar
+						// 3. shadow-2xl: 柔和一點的陰影，增加層次
+						// ----------------------------------------------------------------
+						className={`
+                            bg-white w-full max-w-5xl h-[85vh] relative flex flex-col md:flex-row 
+                            overflow-hidden 
+                            border border-black shadow-2xl
+                        `}
 					>
-						{/* Manage Button */}
-						<button
-							onClick={handleManageClick}
-							className="absolute top-4 left-4 font-bold z-20 text-gray-400 hover:text-gray-600  cursor-pointer"
-							aria-label="Manage"
-						>
-							<Ellipsis size={24} />
-						</button>
+						{/* --------------------------------------------------------
+                           LEFT SIDE: Image Area (Gallery Style)
+                        --------------------------------------------------------- */}
+						<div className="w-full md:w-[50%] h-[40vh] md:h-full flex justify-center items-center bg-gray-50 relative border-b md:border-b-0 md:border-r border-black p-8">
+							{/* Manage Button (Top Left - Clean Style) */}
+							<button
+								onClick={handleManageClick}
+								className={`
+        absolute top-6 left-6 z-20 flex items-center gap-2 
+        text-xs font-mono font-bold uppercase tracking-widest 
+        transition-all duration-300 cursor-pointer
+        px-3 py-1 border
+        ${
+					isEditMode
+						? "bg-white text-black border-black"
+						: "bg-transparent text-gray-400 border-transparent hover:text-black"
+				}
+    `}
+							>
+								<Settings2 size={16} />
 
-						{/* Close button */}
-						<button
-							onClick={onClose}
-							className="absolute top-4 right-4 font-bold z-20 text-gray-400 hover:text-gray-600  cursor-pointer"
-							aria-label="Close"
-						>
-							<X size={24} />
-						</button>
+								<span className="min-w-[4.5rem] text-left">
+									{isEditMode ? "Editing" : "Edit Item"}
+								</span>
+							</button>
 
-						{/* Main image */}
-						<div className="w-full md:w-[400px] flex justify-center items-center shrink-0">
-							<div className="relative w-full h-[60vh] md:h-[70vh] max-h-[70vh]">
+							{/* Image Container */}
+							<div className="relative w-full h-full max-h-[70vh]">
 								<Image
 									fill
 									src={item.image_url}
 									alt={item.name}
-									className="
-              object-contain
-              rounded-lg
-              mb-4 md:mb-0
-            "
-									sizes="(max-width: 768px) 100vw, 400px"
+									className="object-contain drop-shadow-lg"
+									sizes="(max-width: 768px) 100vw, 500px"
+									priority
 								/>
+							</div>
+
+							{/* Tech Specs (Bottom Left) */}
+							<div className="absolute bottom-6 left-6 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+								REF. {item.id.toString().padStart(6, "0")}
 							</div>
 						</div>
 
-						{/* Right panel (scrollable) */}
-						<div className="flex-1 w-full flex flex-col overflow-y-auto pr-2">
-							{isEditMode ? (
-								<ClothViewEditForm
-									dbTagStyles={dbTagStyles}
-									item={item}
-									onSave={onSave}
-									onClose={onClose}
-									onDelete={onDelete}
-								/>
-							) : (
-								<ClothViewRecommendations
-									item={item}
-									isLoadingRecs={isLoadingRecs}
-									recommendations={recommendations}
-									hasTriedAISuggestions={hasTriedAISuggestions}
-									onFetchRecommendations={() =>
-										handleFetchRecommendations(item.id)
-									}
-								/>
-							)}
+						{/* --------------------------------------------------------
+                           RIGHT SIDE: Content Area
+                        --------------------------------------------------------- */}
+						<div className="flex-1 w-full h-full flex flex-col bg-white relative">
+							{/* Close button (Top Right - Clean Style) */}
+							<button
+								onClick={onClose}
+								className="absolute top-6 right-6 z-20 text-gray-400 hover:text-black transition-colors cursor-pointer"
+								aria-label="Close"
+							>
+								<X size={24} strokeWidth={1.5} />
+							</button>
+
+							{/* Scrollable Content */}
+							<div className="flex-1 overflow-y-auto p-8 md:p-12 pt-16">
+								{isEditMode ? (
+									<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+										<div className="mb-8 border-b border-gray-100 pb-4">
+											<h3 className="font-serif text-3xl italic text-black mb-2">
+												Edit Details
+											</h3>
+											<p className="font-mono text-xs text-gray-400 uppercase tracking-widest">
+												Update your item information
+											</p>
+										</div>
+										<ClothViewEditForm
+											dbTagStyles={dbTagStyles}
+											item={item}
+											onSave={onSave}
+											onClose={onClose}
+											onDelete={onDelete}
+										/>
+									</div>
+								) : (
+									<div className="h-full flex flex-col">
+										{/* Product Title Header */}
+										<div className="mb-8">
+											<h2 className="font-serif text-4xl italic text-black mb-2">
+												{item.name || "Unknown Brand"}
+											</h2>
+											<p className="font-mono text-xs text-gray-500 uppercase tracking-[0.2em]">
+												{item.category} / {item.name}
+											</p>
+										</div>
+
+										{/* Recommendations Component */}
+										<div className="flex-1">
+											<ClothViewRecommendations
+												item={item}
+												isLoadingRecs={isLoadingRecs}
+												recommendations={recommendations}
+												hasTriedAISuggestions={hasTriedAISuggestions}
+												onFetchRecommendations={() =>
+													handleFetchRecommendations(item.id)
+												}
+											/>
+										</div>
+									</div>
+								)}
+							</div>
 						</div>
 					</motion.div>
 				</motion.div>

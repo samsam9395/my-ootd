@@ -1,6 +1,7 @@
 import Loader from "@/components/common/loader";
 import { ClothItem, ClothRecommendationSet } from "@/types";
 import Image from "next/image";
+import { Sparkles } from "lucide-react";
 
 type ClothViewRecommendationsProps = {
 	isLoadingRecs: boolean;
@@ -18,80 +19,125 @@ function ClothViewRecommendations({
 	onFetchRecommendations,
 }: ClothViewRecommendationsProps) {
 	return (
-		<div className="flex-1 flex flex-col gap-4 w-full max-w-3xl mx-auto md:overflow-y-auto mt-4 md:mt-0">
-			{/* Generate button */}
+		<div className="flex-1 flex flex-col gap-8 w-full h-full pb-8">
+			{/* Header: Clean & Minimal */}
 			{!recommendations && !isLoadingRecs && (
-				<button
-					className="bg-black text-white py-2 px-4 rounded transition cursor-pointer"
-					onClick={onFetchRecommendations}
-				>
-					Generate AI Suggestions
-				</button>
+				<div className="border-l-2 border-black pl-4 py-2">
+					<h4 className="font-serif text-2xl italic text-gray-900">
+						Stylist Suggestions
+					</h4>
+					<p className="text-xs font-mono text-gray-400 uppercase tracking-widest mt-2">
+						AI Powered Curation
+					</p>
+				</div>
+			)}
+
+			{/* Generate button (Only show if no recs) */}
+			{!recommendations && !isLoadingRecs && (
+				<div className="flex-1 flex flex-col justify-center items-center py-16 border border-dashed border-gray-300 bg-gray-50/30">
+					<p className="font-serif text-gray-500 italic text-lg mb-8">
+						Unlock styling potential for this item
+					</p>
+					<button
+						className="group flex items-center gap-3 bg-black text-white py-4 px-8 text-xs font-bold uppercase tracking-[0.2em] hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] cursor-pointer"
+						onClick={onFetchRecommendations}
+					>
+						<Sparkles size={16} />
+						Generate Look
+					</button>
+				</div>
 			)}
 
 			{/* Loader */}
 			{isLoadingRecs && (
-				<div className="flex w-full flex-col items-center mt-6">
-					<div className="text-gray-700 italic text-md mb-2">
-						Curating your chic look......This takes a moment!
-					</div>
+				<div className="flex w-full flex-col items-center justify-center py-20">
 					<Loader />
+					<div className="text-gray-400 font-mono text-xs uppercase tracking-widest mt-6 animate-pulse">
+						Analyzing Fashion Trends...
+					</div>
 				</div>
 			)}
 
-			{/* Recommendations */}
+			{/* Recommendations Result - EDITORIAL STYLE */}
 			{recommendations && !isLoadingRecs && (
-				<div className="flex flex-col gap-4 mt-4">
-					<div className="border border-gray-200 rounded-lg p-4 px-6 xl:p-2 xl:px-2 flex flex-col gap-4">
-						<div className="space-y-1 text-sm mb-2">
-							<h3 className=" text-lg mb-2">
-								Suggested items for: <br />
-								<span className="font-bold italic">"{item.name}"</span>
-							</h3>
-							{recommendations?.style_phrase && (
-								<div className="grid grid-cols-[70px_auto] gap-1 ">
-									<div className="text-gray-700 font-semibold ">Theme:</div>
-									<span className="font-normal italic text-gray-600">
-										{recommendations.style_phrase}
-									</span>
-								</div>
-							)}
-							{recommendations?.style_flair && (
-								<div className="grid grid-cols-[70px_auto] gap-1">
-									<div className="text-gray-700 font-semibold">The Edit:</div>
-									<span className="font-normal italic text-gray-600">
-										{recommendations.style_flair}
-									</span>
-								</div>
-							)}
+				<div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+					{/* 1. The Vibe Section (No Box, Just Typography) */}
+					<div className="px-2">
+						{recommendations?.style_phrase && (
+							<div className="mb-6">
+								<span className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-3">
+									Current Mood
+								</span>
+								<h3 className="font-serif text-4xl italic text-black leading-tight border-l-4 border-black pl-6 py-2">
+									"{recommendations.style_phrase}"
+								</h3>
+							</div>
+						)}
+
+						{recommendations?.style_flair && (
+							<div className="pl-7">
+								{" "}
+								{/* Indent to align with text above */}
+								<p className="text-sm text-gray-600 leading-relaxed font-light font-sans max-w-prose">
+									{recommendations.style_flair}
+								</p>
+							</div>
+						)}
+					</div>
+
+					{/* Divider */}
+					<div className="h-[1px] w-full bg-gray-100"></div>
+
+					{/* 2. Pair With Section (Clean List, No Pointer) */}
+					<div className="space-y-6">
+						<div className="flex items-center justify-between px-2">
+							<span className="text-xs font-mono font-bold text-black uppercase tracking-widest">
+								Curated Pairing
+							</span>
+							<span className="text-[10px] font-mono text-gray-400">
+								{recommendations.items.length} ITEMS
+							</span>
 						</div>
-						{recommendations.items.map((item: ClothItem) => (
-							<div key={item.id} className="flex flex-row items-center gap-2 ">
-								<div className="w-32 flex-shrink-0 md:w-36 aspect-square rounded-lg">
-									<div className="relative w-full h-full">
+
+						<div className="grid gap-6">
+							{recommendations.items.map((recItem: ClothItem) => (
+								<div
+									key={recItem.id}
+									// 🚫 這裡移除了 cursor-pointer 和 hover 背景
+									className="flex flex-row items-start gap-5 p-2"
+								>
+									{/* Image: Slightly larger styling */}
+									<div className="w-20 h-24 relative flex-shrink-0 bg-gray-50 border border-gray-100">
 										<Image
 											fill
-											src={item?.image_url}
-											alt={item?.name}
-											className="object-cover rounded-lg"
-											sizes="(max-width: 768px) 128px, 144px"
+											src={recItem?.image_url}
+											alt={recItem?.name}
+											className="object-contain p-2 mix-blend-multiply"
+											sizes="80px"
 										/>
 									</div>
-								</div>
 
-								<div className="flex flex-col text-sm min-w-0">
-									<span className="font-semibold">{item?.name}</span>
-									<span className="text-gray-500 ">{item?.category}</span>
+									{/* Text Info */}
+									<div className="flex flex-col pt-1 min-w-0">
+										<span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mb-1">
+											{recItem?.category}
+										</span>
+										<span className="font-serif text-lg italic text-gray-900 leading-tight">
+											{recItem?.name}
+										</span>
+									</div>
 								</div>
-							</div>
-						))}
+							))}
+						</div>
 					</div>
 				</div>
 			)}
 
 			{/* No recommendations */}
 			{hasTriedAISuggestions && !recommendations && !isLoadingRecs && (
-				<div className="text-gray-500 text-sm p-2">No recommendations yet</div>
+				<div className="text-gray-400 font-mono text-xs uppercase text-center py-10 border-t border-b border-gray-50">
+					No matching items found in closet.
+				</div>
 			)}
 		</div>
 	);
