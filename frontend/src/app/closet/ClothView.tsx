@@ -74,20 +74,17 @@ export default function ClothView({
 						exit={{ y: 20, opacity: 0, scale: 0.98 }}
 						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 						onClick={(e) => e.stopPropagation()}
-						/* Container Layout Logic:
-                            Mobile: overflow-y-auto allows the entire card to scroll.
-                            Desktop: overflow-hidden locks the card size, inner content scrolls independently.
+						/* STYLE UPDATE: 
+                           Changed shadow-2xl to shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] 
+                           to match the hard shadow style of your AddClothForm.
                         */
 						className={`
                             bg-white w-full max-w-5xl h-[85vh] relative flex flex-col md:flex-row 
                             overflow-y-auto md:overflow-hidden
-                            border border-black shadow-2xl
+                            border border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
                         `}
 					>
-						{/* LEFT SIDE: Image Area 
-                           Mobile: Fixed height (50vh) to ensure image visibility.
-                           Desktop: Full height.
-                        */}
+						{/* LEFT SIDE: Image Area */}
 						<div className="w-full md:w-[50%] h-[50vh] min-h-[400px] md:h-full md:min-h-0 flex justify-center items-center bg-gray-50 relative border-b md:border-b-0 md:border-r border-black p-8 shrink-0">
 							{/* Manage Button */}
 							<button
@@ -116,7 +113,12 @@ export default function ClothView({
 									fill
 									src={item.image_url}
 									alt={item.name}
-									className="object-contain drop-shadow-lg"
+									/* STYLE UPDATE: 
+                                       - p-12: Adds space so items don't look zoomed in.
+                                       - mix-blend-multiply: Blends background.
+                                       - Removed drop-shadow-lg.
+                                    */
+									className="object-contain p-12 mix-blend-multiply"
 									sizes="(max-width: 768px) 100vw, 500px"
 									priority
 								/>
@@ -128,10 +130,7 @@ export default function ClothView({
 							</div>
 						</div>
 
-						{/* RIGHT SIDE: Content Area
-                           Mobile: Auto height to fit content, overflow visible (scrolls with parent).
-                           Desktop: Full height, independent scroll.
-                        */}
+						{/* RIGHT SIDE: Content Area */}
 						<div className="w-full md:w-[50%] h-auto md:h-full flex flex-col bg-white relative">
 							{/* Close button */}
 							<button

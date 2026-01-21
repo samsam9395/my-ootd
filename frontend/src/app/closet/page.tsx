@@ -10,6 +10,7 @@ import { getRandomClothes, getStyleTags } from "@/utils/api/clothes";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu, Plus } from "lucide-react";
 import Loader from "@/components/common/loader";
+import { useLoader } from "@/contexts/FullLoaderContext";
 
 const categories = [
 	"all",
@@ -32,7 +33,11 @@ function ClosetContent() {
 	const [randomIsLoading, setRandomIsLoading] = useState(true);
 	const [newCloth, setNewCloth] = useState<ClothItem | null>(null);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const { hideLoader } = useLoader();
 
+	useEffect(() => {
+		hideLoader(); // 確保進入新頁面後遮罩被移除
+	}, []);
 	function handleCategoryChange(category: string) {
 		if (category === selectedCategory) return;
 		router.push(`/closet?category=${category}`);

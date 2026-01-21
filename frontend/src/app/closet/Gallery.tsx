@@ -216,11 +216,6 @@ export default function Gallery({
 
 	return (
 		<>
-			{/* RWD LAYOUT FIX:
-                1. grid-cols-2: 手機版改成雙欄 (一行兩張)，圖片直接縮小一半。
-                2. gap-x-4 gap-y-10: 增加間距，讓畫面更透氣。
-                3. md:grid-cols-3: 平板/電腦版維持三欄。
-            */}
 			<div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:gap-x-8">
 				{fetchItems.map((item, index) => (
 					<div
@@ -231,26 +226,25 @@ export default function Gallery({
 						}}
 						className="group bg-white cursor-pointer flex flex-col gap-3"
 					>
-						{/* IMAGE CONTAINER FIX:
-                            1. aspect-[3/4]: 強制鎖定 3:4 比例 (時尚攝影標準比例)，不再使用固定高度 h-80。
-                               這會根據寬度自動計算高度，完美解決 Zoomed in 問題。
-                            2. w-full: 寬度填滿欄位。
+						{/* IMAGE FIX:
+                           1. aspect-[3/4]: Keeps the editorial shape.
+                           2. bg-gray-50: A light background to frame the item.
                         */}
 						<div className="relative w-full aspect-[3/4] bg-gray-50 transition-colors duration-300">
 							<Image
 								fill
 								src={item.image_url}
 								alt={item.name}
-								/* MOBILE STYLE:
-                                   - object-cover: 填滿容器。
-                                   - 手機版無 padding，電腦版 (sm:) 加 padding 和 multiply 效果。
+								/* STYLE FIX HERE:
+                                   - object-contain: Ensures the WHOLE item (boot, heel) fits in the box. No cropping.
+                                   - p-4: Adds breathing room so it doesn't touch the edges.
+                                   - mix-blend-multiply: Blends the white background of the photo into the gray card.
                                 */
-								className="object-cover sm:p-4 sm:mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+								className="object-contain p-4 mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
 								sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
 							/>
 						</div>
 
-						{/* TEXT AREA */}
 						<div className="flex flex-col gap-0.5">
 							<p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
 								{item.category}

@@ -42,7 +42,6 @@ export default function BoldLuxuryLogin() {
 			router.push("/closet");
 		} catch (err: any) {
 			setError(err.message || "Something went wrong");
-		} finally {
 			hideLoader();
 		}
 	};

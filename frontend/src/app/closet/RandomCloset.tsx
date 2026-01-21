@@ -74,7 +74,6 @@ export default function RandomCloset({
 		}
 	}
 
-	// Z-INDEX FIX: Changed from z-40 to z-20 to sit below Mobile Header (z-40)
 	const arrowBtnClass = `
         absolute top-1/2 -translate-y-1/2 z-20 p-3 rounded-full shadow-lg transition-all duration-300
         bg-white text-black
@@ -133,7 +132,7 @@ export default function RandomCloset({
 							className={`
                                 absolute top-1/2 left-1/2 w-64 h-80 md:w-72 md:h-96 
                                 transition-all duration-500 ease-out
-                                bg-white border-4 border-white shadow-2xl
+                                bg-white shadow-2xl
                                 ${isActive ? "z-30 hover:scale-105" : "z-10 grayscale hover:grayscale-0"}
                                 ${recIsLoading ? "cursor-wait" : "cursor-pointer"}
                             `}
@@ -144,22 +143,28 @@ export default function RandomCloset({
 							}}
 							onClick={() => !recIsLoading && setSelectedCloth(i)}
 						>
-							<div className="relative w-full h-full overflow-hidden bg-gray-50 border border-gray-100">
+							<div className="relative w-full h-full overflow-hidden bg-white border border-gray-100">
 								<Image
 									fill
 									src={item.image_url}
 									alt={`clothing-${i}`}
-									className="object-cover"
+									/* ✨ FIX IS HERE: 
+                                       1. object-contain: Keeps original proportions (no zooming).
+                                       2. p-8: Adds "museum" whitespace around the item.
+                                       3. mix-blend-multiply: Blends the image background nicely.
+                                    */
+									className="object-contain p-8 mix-blend-multiply"
 									sizes="(max-width: 768px) 100vw, 400px"
 								/>
+
 								{isActive && !selectedItem && !recIsLoading && (
-									<div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+									<div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
 										<span className="bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest border border-black shadow-lg">
 											Click to Style
 										</span>
 									</div>
 								)}
-								{/* Loading Overlay on the card itself */}
+
 								{isActive && recIsLoading && (
 									<div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-[2px]">
 										<Loader />
@@ -296,7 +301,6 @@ export default function RandomCloset({
 							className="bg-white border border-black shadow-2xl p-0 max-w-sm w-full relative overflow-hidden"
 							onClick={(e) => e.stopPropagation()}
 						>
-							{/* Updated Close Button to match ClothView style */}
 							<button
 								className="absolute top-6 right-6 z-10 text-gray-400 hover:text-black transition-colors cursor-pointer"
 								onClick={() => setModalItem(null)}
