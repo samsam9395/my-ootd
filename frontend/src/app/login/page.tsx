@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoader } from "@/contexts/FullLoaderContext";
 import { login, LoginPayload } from "@/utils/api/auth";
-import { Eye, EyeOff, ArrowRight, Sparkles } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 
 // ==========================================
@@ -25,10 +25,18 @@ export default function BoldLuxuryLogin() {
 	const { setUser, setAccessToken } = useAuth();
 	const { showLoader, hideLoader } = useLoader();
 
-	const [email, setEmail] = useState("sammimi@gmail.com");
-	const [password, setPassword] = useState("Test123456");
+	// Cleared defaults for security/professionalism
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+
+	// New helper for the demo button
+	const fillDemoCredentials = () => {
+		setEmail("sammimi@gmail.com");
+		setPassword("Test123456");
+		setError(null);
+	};
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -61,10 +69,10 @@ export default function BoldLuxuryLogin() {
 					/>
 				</div>
 
-				{/* ✨ FIX: Gradient Overlay (讓文字一定看得到) */}
+				{/* ✨ FIX: Gradient Overlay */}
 				<div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-0 pointer-events-none" />
 
-				{/* Quote Text (移除 mix-blend-difference，加上 drop-shadow) */}
+				{/* Quote Text */}
 				<div className="absolute bottom-24 left-12 right-12 z-10">
 					<h2 className="text-3xl xl:text-5xl font-serif italic leading-tight text-white drop-shadow-md">
 						"{QUOTE}"
@@ -158,16 +166,30 @@ export default function BoldLuxuryLogin() {
 								</div>
 							)}
 
-							<button
-								type="submit"
-								className="group w-full bg-white text-[#050505] py-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-gray-200 transition-all duration-300 mt-8 flex items-center justify-center gap-2 cursor-pointer"
-							>
-								Enter Wardrobe
-								<ArrowRight
-									size={14}
-									className="transition-transform group-hover:translate-x-1"
-								/>
-							</button>
+							{/* BUTTONS CONTAINER */}
+							<div className="space-y-4 pt-4">
+								{/* Demo Account Access Button - Now High Visibility */}
+								<button
+									type="button"
+									onClick={fillDemoCredentials}
+									className="w-full border border-white/30 text-white/70 hover:text-white hover:border-white hover:bg-white/5 py-4 text-xs font-bold tracking-[0.2em] uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+								>
+									<Zap size={14} className="text-yellow-200" />
+									Explore as Guest
+								</button>
+
+								{/* Main Submit Button */}
+								<button
+									type="submit"
+									className="group w-full bg-white text-[#050505] py-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-gray-200 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+								>
+									Enter Wardrobe
+									<ArrowRight
+										size={14}
+										className="transition-transform group-hover:translate-x-1"
+									/>
+								</button>
+							</div>
 						</form>
 
 						<div className="text-center">
