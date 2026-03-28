@@ -31,21 +31,24 @@ def get_supabase():
 
 
 # Fetch cloth by type and pagination
-def get_clothes_by_type(category: str | None, limit: int, offset: int):
+def get_clothes_by_type(category: str | None, limit: int, cursor:int | None = None):
     user_id = get_current_user_id()
     if not user_id:
         return []
 
     supabase = get_supabase()
-    query = supabase.table("clothes").select("""
-        id, name, type, colour, category, image_url,
-        clothes_styles (
-            styles (id, name)
-        )
-    """).eq("user_id", user_id).range(offset, offset + limit - 1)
+ 
+
+    query = supabase.table("clothes").select("id, name, type, colour, category, image_url, clothes_styles(styles(id, name)))").eq("user_id", user_id)
+    
+    if cursor is not None:
+        query = query.lt("id", cursor) # SQL: WHERE id < cursor
     
     if category and category.lower() != "all":
         query = query.eq("category", category.lower())
+    
+    # Add ORDER BY id DESC LIMIT X
+    query = query.order("id", desc=True).limit(limit)
 
     data = query.execute()
     result = [
@@ -62,35 +65,6 @@ def get_clothes_by_type(category: str | None, limit: int, offset: int):
     ]
     return result
 
-# Fetch all items
-# def get_all_items():
-#     supabase = get_supabase()
-#     user_id = get_current_user_id()
-    
-#     if not user_id:
-#         return []  # or handle unauthorized
-    
-#     try:
-#         response = supabase.table("clothes").select("""
-#             id,
-#             name,
-#             type,
-#             colour,
-#             category,
-#             image_url,
-#             clothes_styles (
-#                 styles (
-#                     id,
-#                     name
-#                 )
-#             )
-#         """).eq("user_id", user_id).execute()
-        
-#         return response.data
-#     except Exception as e:
-#         print("Error fetching items:", e)
-#         return None
-    
 
 # Fetch all style tags
 def fetch_style_tags():

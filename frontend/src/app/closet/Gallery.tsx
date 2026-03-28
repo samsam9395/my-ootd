@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Loader from "@/components/common/loader";
 import ClothViewer from "./ClothView";
 import { AddUpdateClothPayload, ClothItem, StyleTag } from "@/types";
@@ -47,7 +47,7 @@ export default function Gallery({
 
 	const { showLoader, hideLoader } = useLoader();
 	const [fetchItems, setFetchItems] = useState<any[]>([]);
-	const [page, setPage] = useState(0);
+	const [cursor, setCursor] = useState<number | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [hasMore, setHasMore] = useState(true);
 
@@ -61,20 +61,24 @@ export default function Gallery({
 		const fetchInitialData = async () => {
 			setIsLoading(true);
 			setFetchItems([]);
-			setPage(0);
+			setCursor(null); // cursor-based init
 			setHasMore(true);
-
-			const offset = 0;
 
 			const data = await getPageClothesByType(
 				selectedCategory,
 				ITEM_LIMIT,
-				offset,
-			);
+				null,
+			); // cursor-based init
 
 			if (!cancelled) {
 				setFetchItems(data);
-				setHasMore(data.length > 0);
+
+				if (data.length > 0) {
+					setCursor(data[data.length - 1].id);
+					setHasMore(data.length === ITEM_LIMIT);
+				} else {
+					setHasMore(false);
+				}
 				setIsLoading(false);
 			}
 		};
@@ -86,36 +90,27 @@ export default function Gallery({
 		};
 	}, [selectedCategory]);
 
-	useEffect(() => {
-		if (page === 0 || !hasMore) return;
+	const callFetchMoreData = useCallback(async () => {
+		if (isLoading || !hasMore || cursor === null) return;
 
-		const callFetchMoreData = async () => {
-			setIsLoading(true);
+		setIsLoading(true);
 
-			const offset = page * ITEM_LIMIT;
-			const data = await getPageClothesByType(
-				selectedCategory,
-				ITEM_LIMIT,
-				offset,
-			);
+		const data = await getPageClothesByType(
+			selectedCategory,
+			ITEM_LIMIT,
+			cursor,
+		);
 
-			if (!data || data.length === 0) {
-				setHasMore(false);
-			} else {
-				setFetchItems((prev) => {
-					const existingIds = new Set(prev.map((item) => item.id));
-					const filteredData = data.filter(
-						(item: ClothItem) => !existingIds.has(item.id),
-					);
-					return [...prev, ...filteredData];
-				});
-			}
+		if (!data || data.length === 0) {
+			setHasMore(false);
+		} else {
+			setFetchItems((prev) => [...prev, ...data]);
+			setCursor(data[data.length - 1].id);
+			setHasMore(data.length === ITEM_LIMIT);
+		}
 
-			setIsLoading(false);
-		};
-
-		callFetchMoreData();
-	}, [page, selectedCategory, hasMore]);
+		setIsLoading(false);
+	}, [isLoading, hasMore, cursor, selectedCategory]);
 
 	useEffect(() => {
 		let timeout: NodeJS.Timeout | null = null;
@@ -125,7 +120,8 @@ export default function Gallery({
 				if (entries[0].isIntersecting && !isLoading && hasMore) {
 					if (!timeout) {
 						timeout = setTimeout(() => {
-							setPage((prev) => prev + 1);
+							callFetchMoreData();
+							// setPage((prev) => prev + 1);
 							timeout = null;
 						}, 200);
 					}
@@ -139,7 +135,7 @@ export default function Gallery({
 			observer.disconnect();
 			if (timeout) clearTimeout(timeout);
 		};
-	}, [isLoading, hasMore]);
+	}, [callFetchMoreData, isLoading, hasMore]);
 
 	const handleSaveItemUpdate = async (updatePayload: AddUpdateClothPayload) => {
 		showLoader();

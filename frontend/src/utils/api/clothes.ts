@@ -5,9 +5,10 @@ import { apiClient } from "@utils/api/apiClient";
 export const getPageClothesByType = async (
     selectedCategory: string,
     limit: number,
-    offset: number
+    cursor: number | null
 ) => {
-    const res = await apiClient.get(`/clothes?type=${selectedCategory}&limit=${limit}&offset=${offset}`);
+    const cursorQuery = cursor ? `&cursor=${cursor}` : "";
+    const res = await apiClient.get(`/clothes?type=${selectedCategory}&limit=${limit}${cursorQuery}`);
     return res;
 }
 

@@ -20,13 +20,16 @@ from .db_service import (
 def get_wardrobe():
     category = request.args.get("type", "all").lower()
     limit = int(request.args.get("limit", 3))
-    offset = int(request.args.get("offset", 0))
-   
-    if category == "" or category == "all":
-        clothes = get_clothes_by_type(None, limit, offset)  # no filter
+    
+    cursor_param = request.args.get("cursor")
+    
+    if cursor_param and cursor_param not in ["null", "undefined", ""]:
+        cursor = int(cursor_param)
     else:
-        clothes = get_clothes_by_type(category, limit, offset)
-
+        cursor = None
+    
+    clothes = get_clothes_by_type(None if category in ["", "all"] else category, limit, cursor)
+   
     return jsonify(clothes)
 
 # Create new cloth with embedding and styles
